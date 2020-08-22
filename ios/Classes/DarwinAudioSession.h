@@ -1,6 +1,6 @@
 #import <Flutter/Flutter.h>
 
-@interface AudioPlayer : NSObject<FlutterStreamHandler>
+@interface DarwinAudioSession : NSObject
 
 @property (readonly, nonatomic) FlutterMethodChannel *channel;
 

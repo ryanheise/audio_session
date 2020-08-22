@@ -53,8 +53,8 @@ class AVAudioSession {
     AVAudioSessionMode mode,
     AVAudioSessionRouteSharingPolicy policy,
   ]) =>
-      _channel?.invokeMethod(
-          'setCategory', [category.index, options.value, mode, policy]);
+      _channel?.invokeMethod('setCategory',
+          [category?.index, options?.value, mode?.index, policy?.index]);
 
   Future<List<AVAudioSessionCategory>> get availableCategories async =>
       ((await _channel?.invokeMethod('getAvailableCategories'))
@@ -87,10 +87,7 @@ class AVAudioSession {
 
   Future<bool> setActive(bool active,
           {AVAudioSessionSetActiveOptions avOptions}) =>
-      _channel.invokeMethod('setActive', [active, avOptions.value]);
-
-  Future<bool> activateWithOptions(AVAudioSessionActivationOptions options) =>
-      _channel.invokeMethod('activateWithOptions', [options.value]);
+      _channel.invokeMethod('setActive', [active, avOptions?.value]);
 
   Future<AVAudioSessionRecordPermission> get recordPermission async {
     final int index = await _channel.invokeMethod('getRecordPermission');
@@ -100,7 +97,7 @@ class AVAudioSession {
   Future<bool> requestRecordPermission() =>
       _channel.invokeMethod('requestRecordPermission');
 
-  Future<bool> get otherAudioPlaying =>
+  Future<bool> get isOtherAudioPlaying =>
       _channel.invokeMethod('isOtherAudioPlaying');
 
   Future<bool> get secondaryAudioShouldBeSilencedHint =>
@@ -342,26 +339,6 @@ class AVAudioSessionSetActiveOptions {
   @override
   bool operator ==(Object option) =>
       option is AVAudioSessionSetActiveOptions && value == option.value;
-
-  int get hashCode => value.hashCode;
-}
-
-/// The options for [AVAudioSession.activateWithOptions].
-class AVAudioSessionActivationOptions {
-  static const AVAudioSessionActivationOptions none =
-      const AVAudioSessionActivationOptions._(0);
-
-  final int value;
-
-  const AVAudioSessionActivationOptions._(this.value);
-
-  AVAudioSessionActivationOptions operator |(
-          AVAudioSessionActivationOptions option) =>
-      AVAudioSessionActivationOptions._(value | option.value);
-
-  @override
-  bool operator ==(Object option) =>
-      option is AVAudioSessionActivationOptions && value == option.value;
 
   int get hashCode => value.hashCode;
 }
