@@ -139,8 +139,11 @@ class AndroidAudioManager {
   Future<bool> requestAudioFocus(AndroidAudioFocusRequest focusRequest) async {
     _onAudioFocusChanged = focusRequest.onAudioFocusChanged;
     return await _channel
-        ?.invokeMethod('requestAudioFocus', [focusRequest.toJson()]);
+        .invokeMethod('requestAudioFocus', [focusRequest.toJson()]);
   }
+
+  Future<bool> abandonAudioFocus() =>
+      _channel.invokeMethod('abandonAudioFocus');
 }
 
 class AndroidAudioFocusRequest {

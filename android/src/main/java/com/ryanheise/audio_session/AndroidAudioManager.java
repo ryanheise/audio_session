@@ -22,6 +22,7 @@ public class AndroidAudioManager implements MethodCallHandler {
 	private BinaryMessenger messenger;
 	private MethodChannel channel;
 	private AudioManager audioManager;
+	private AudioFocusRequestCompat audioFocusRequest;
 
 	public AndroidAudioManager(Context applicationContext, BinaryMessenger messenger) {
 		this.applicationContext = applicationContext;
@@ -37,25 +38,48 @@ public class AndroidAudioManager implements MethodCallHandler {
 		List<?> args = (List<?>)call.arguments;
 		switch (call.method) {
 		case "requestAudioFocus": {
-			Map<?, ?> request = (Map<?, ?>)args.get(0);
-			AudioFocusRequestCompat.Builder builder = new AudioFocusRequestCompat.Builder((Integer)request.get("gainType"));
-			builder.setOnAudioFocusChangeListener(focusChange -> {
-				invokeMethod("onAudioFocusChanged", focusChange);
-			});
-			if (request.get("audioAttributes") != null) {
-				builder.setAudioAttributes(decodeAudioAttributes((Map<?, ?>)request.get("audioAttributes")));
-			}
-			if (request.get("willPauseWhenDucked") != null) {
-				builder.setWillPauseWhenDucked((Boolean)request.get("willPauseWhenDucked"));
-			}
-			int status = AudioManagerCompat.requestAudioFocus(audioManager, builder.build());
-			result.success(status == AudioManager.AUDIOFOCUS_REQUEST_GRANTED);
+			result.success(requestAudioFocus(args));
+			break;
+		}
+		case "abandonAudioFocus": {
+			result.success(abandonAudioFocus());
 			break;
 		}
 		default: {
 			result.notImplemented();
 			break;
 		}
+		}
+	}
+
+	private boolean requestAudioFocus(List<?> args) {
+		if (audioFocusRequest != null) {
+			return true;
+		}
+		Map<?, ?> request = (Map<?, ?>)args.get(0);
+		AudioFocusRequestCompat.Builder builder = new AudioFocusRequestCompat.Builder((Integer)request.get("gainType"));
+		builder.setOnAudioFocusChangeListener(focusChange -> {
+			if (focusChange == AudioManager.AUDIOFOCUS_LOSS) abandonAudioFocus();
+			invokeMethod("onAudioFocusChanged", focusChange);
+		});
+		if (request.get("audioAttributes") != null) {
+			builder.setAudioAttributes(decodeAudioAttributes((Map<?, ?>)request.get("audioAttributes")));
+		}
+		if (request.get("willPauseWhenDucked") != null) {
+			builder.setWillPauseWhenDucked((Boolean)request.get("willPauseWhenDucked"));
+		}
+		audioFocusRequest = builder.build();
+		int status = AudioManagerCompat.requestAudioFocus(audioManager, audioFocusRequest);
+		return status == AudioManager.AUDIOFOCUS_REQUEST_GRANTED;
+	}
+
+	private boolean abandonAudioFocus() {
+		if (audioFocusRequest == null) {
+			return true;
+		} else {
+			int status = AudioManagerCompat.abandonAudioFocusRequest(audioManager, audioFocusRequest);
+			audioFocusRequest = null;
+			return status == AudioManager.AUDIOFOCUS_REQUEST_GRANTED;
 		}
 	}
 

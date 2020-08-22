@@ -133,47 +133,55 @@ class AudioSession {
       return await _avAudioSession.setActive(active,
           avOptions: _configuration.avAudioSessionSetActiveOptions);
     } else if (!kIsWeb && Platform.isAndroid) {
-      final pauseWhenDucked =
-          _configuration.androidWillPauseWhenDucked ?? false;
-      var ducked = false;
-      return await _androidAudioManager
-          .requestAudioFocus(AndroidAudioFocusRequest(
-        gainType: _configuration.androidAudioFocusGainType,
-        audioAttributes: _configuration.androidAudioAttributes,
-        willPauseWhenDucked: _configuration.androidWillPauseWhenDucked,
-        onAudioFocusChanged: (focus) {
-          switch (focus) {
-            case AndroidAudioFocus.gain:
-              _interruptionEventSubject.add(AudioInterruptionEvent(
-                  false,
-                  ducked
-                      ? AudioInterruptionType.duck
-                      : AudioInterruptionType.pause));
-              ducked = false;
-              break;
-            case AndroidAudioFocus.loss:
-              _interruptionEventSubject.add(
-                  AudioInterruptionEvent(true, AudioInterruptionType.unknown));
-              ducked = false;
-              break;
-            case AndroidAudioFocus.lossTransient:
-              _interruptionEventSubject.add(
-                  AudioInterruptionEvent(true, AudioInterruptionType.pause));
-              ducked = false;
-              break;
-            case AndroidAudioFocus.lossTransientCanDuck:
-              // We enforce the "will pause when ducked" configuration by
-              // sending the app a pause event instead of a duck event.
-              _interruptionEventSubject.add(AudioInterruptionEvent(
-                  true,
-                  pauseWhenDucked
-                      ? AudioInterruptionType.pause
-                      : AudioInterruptionType.duck));
-              ducked = true;
-              break;
-          }
-        },
-      ));
+      if (active) {
+        // Activate
+        final pauseWhenDucked =
+            _configuration.androidWillPauseWhenDucked ?? false;
+        var ducked = false;
+        final success = await _androidAudioManager
+            .requestAudioFocus(AndroidAudioFocusRequest(
+          gainType: _configuration.androidAudioFocusGainType,
+          audioAttributes: _configuration.androidAudioAttributes,
+          willPauseWhenDucked: _configuration.androidWillPauseWhenDucked,
+          onAudioFocusChanged: (focus) {
+            switch (focus) {
+              case AndroidAudioFocus.gain:
+                _interruptionEventSubject.add(AudioInterruptionEvent(
+                    false,
+                    ducked
+                        ? AudioInterruptionType.duck
+                        : AudioInterruptionType.pause));
+                ducked = false;
+                break;
+              case AndroidAudioFocus.loss:
+                _interruptionEventSubject.add(AudioInterruptionEvent(
+                    true, AudioInterruptionType.unknown));
+                ducked = false;
+                break;
+              case AndroidAudioFocus.lossTransient:
+                _interruptionEventSubject.add(
+                    AudioInterruptionEvent(true, AudioInterruptionType.pause));
+                ducked = false;
+                break;
+              case AndroidAudioFocus.lossTransientCanDuck:
+                // We enforce the "will pause when ducked" configuration by
+                // sending the app a pause event instead of a duck event.
+                _interruptionEventSubject.add(AudioInterruptionEvent(
+                    true,
+                    pauseWhenDucked
+                        ? AudioInterruptionType.pause
+                        : AudioInterruptionType.duck));
+                ducked = true;
+                break;
+            }
+          },
+        ));
+        return success;
+      } else {
+        // Deactivate
+        final success = await _androidAudioManager.abandonAudioFocus();
+        return success;
+      }
     }
     return true;
   }
