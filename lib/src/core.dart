@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:rxdart/rxdart.dart';
 
@@ -51,14 +52,16 @@ class AudioSession {
     return instance;
   }
 
-  AndroidAudioManager _androidAudioManager = AndroidAudioManager();
-  AVAudioSession _avAudioSession = AVAudioSession();
+  AndroidAudioManager _androidAudioManager =
+      !kIsWeb && Platform.isAndroid ? AndroidAudioManager() : null;
+  AVAudioSession _avAudioSession =
+      !kIsWeb && Platform.isIOS ? AVAudioSession() : null;
   AudioSessionConfiguration _configuration;
   final _configurationSubject = BehaviorSubject<AudioSessionConfiguration>();
   final _interruptionEventSubject = PublishSubject<AudioInterruptionEvent>();
 
   AudioSession._() {
-    _avAudioSession.interruptionNotificationStream.listen((notification) {
+    _avAudioSession?.interruptionNotificationStream?.listen((notification) {
       switch (notification.type) {
         case AVAudioSessionInterruptionType.began:
           _interruptionEventSubject
@@ -113,14 +116,12 @@ class AudioSession {
   /// current configuration at any time.
   Future<void> configure(AudioSessionConfiguration configuration) async {
     assert(configuration != null);
-    if (Platform.isIOS) {
-      await _avAudioSession.setCategory(
-        configuration.avAudioSessionCategory,
-        configuration.avAudioSessionCategoryOptions,
-        configuration.avAudioSessionMode,
-        configuration.avAudioSessionRouteSharingPolicy,
-      );
-    }
+    await _avAudioSession?.setCategory(
+      configuration.avAudioSessionCategory,
+      configuration.avAudioSessionCategoryOptions,
+      configuration.avAudioSessionMode,
+      configuration.avAudioSessionRouteSharingPolicy,
+    );
     _configuration = configuration;
     await _channel.invokeMethod('setConfiguration', [_configuration.toJson()]);
   }
@@ -128,10 +129,10 @@ class AudioSession {
   /// Activates or deactivates this audio session. Typically an audio
   /// plugin should call this method when it begins playing audio.
   Future<bool> setActive(bool active) async {
-    if (Platform.isIOS) {
+    if (!kIsWeb && Platform.isIOS) {
       return await _avAudioSession.setActive(active,
           avOptions: _configuration.avAudioSessionSetActiveOptions);
-    } else if (Platform.isAndroid) {
+    } else if (!kIsWeb && Platform.isAndroid) {
       final pauseWhenDucked =
           _configuration.androidWillPauseWhenDucked ?? false;
       var ducked = false;
@@ -181,7 +182,7 @@ class AudioSession {
   /// playing audio.
   Future<void> close() async {
     await setActive(false);
-    _avAudioSession.close();
+    _avAudioSession?.close();
     _configurationSubject.close();
     _interruptionEventSubject.close();
   }

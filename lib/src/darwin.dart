@@ -1,13 +1,10 @@
-import 'dart:io';
-
 import 'package:flutter/services.dart';
 import 'package:meta/meta.dart';
 import 'package:rxdart/rxdart.dart';
 
 class AVAudioSession {
-  static final MethodChannel _channel = Platform.isIOS || Platform.isMacOS
-      ? const MethodChannel('com.ryanheise.av_audio_session')
-      : null;
+  static final MethodChannel _channel =
+      const MethodChannel('com.ryanheise.av_audio_session');
   static AVAudioSession _instance;
 
   final _interruptionNotificationSubject =
@@ -24,7 +21,7 @@ class AVAudioSession {
   }
 
   AVAudioSession._() {
-    _channel?.setMethodCallHandler((MethodCall call) async {
+    _channel.setMethodCallHandler((MethodCall call) async {
       final List args = call.arguments;
       switch (call.method) {
         case 'onInterruptionEvent':
@@ -43,7 +40,7 @@ class AVAudioSession {
           _interruptionNotificationSubject.stream;
 
   Future<AVAudioSessionCategory> get category async {
-    final int index = await _channel?.invokeMethod('getCategory');
+    final int index = await _channel.invokeMethod('getCategory');
     return index == null ? null : AVAudioSessionCategory.values[index];
   }
 
@@ -53,33 +50,32 @@ class AVAudioSession {
     AVAudioSessionMode mode,
     AVAudioSessionRouteSharingPolicy policy,
   ]) =>
-      _channel?.invokeMethod('setCategory',
+      _channel.invokeMethod('setCategory',
           [category?.index, options?.value, mode?.index, policy?.index]);
 
   Future<List<AVAudioSessionCategory>> get availableCategories async =>
-      ((await _channel?.invokeMethod('getAvailableCategories'))
-              as List<dynamic>)
+      ((await _channel.invokeMethod('getAvailableCategories')) as List<dynamic>)
           ?.map((index) => AVAudioSessionCategory.values[index as int])
           ?.toList();
 
   Future<int> get categoryOptions =>
-      _channel?.invokeMethod('getCategoryOptions');
+      _channel.invokeMethod('getCategoryOptions');
 
   Future<AVAudioSessionMode> get mode async {
-    final int index = await _channel?.invokeMethod('getMode');
+    final int index = await _channel.invokeMethod('getMode');
     return index == null ? null : AVAudioSessionMode.values[index];
   }
 
   Future<void> setMode(AVAudioSessionMode mode) =>
-      _channel?.invokeMethod('setMode', [mode.index]);
+      _channel.invokeMethod('setMode', [mode.index]);
 
   Future<List<AVAudioSessionMode>> get availableModes async =>
-      ((await _channel?.invokeMethod('getAvailableModes')) as List<dynamic>)
+      ((await _channel.invokeMethod('getAvailableModes')) as List<dynamic>)
           ?.map((index) => AVAudioSessionMode.values[index as int])
           ?.toList();
 
   Future<AVAudioSessionRouteSharingPolicy> get routeSharingPolicy async {
-    final int index = await _channel?.invokeMethod('getRouteSharingPolicy');
+    final int index = await _channel.invokeMethod('getRouteSharingPolicy');
     return index == null
         ? null
         : AVAudioSessionRouteSharingPolicy.values[index];

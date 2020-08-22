@@ -1,9 +1,4 @@
 import 'dart:async';
-// In order to *not* need this ignore, consider extracting the "web" version
-// of your plugin as a separate package, instead of inlining it in the same
-// package as the core of your plugin.
-// ignore: avoid_web_libraries_in_flutter
-import 'dart:html' as html show window;
 
 import 'package:flutter/services.dart';
 import 'package:flutter_web_plugins/flutter_web_plugins.dart';
@@ -11,35 +6,36 @@ import 'package:flutter_web_plugins/flutter_web_plugins.dart';
 /// A web implementation of the AudioSession plugin.
 class AudioSessionWeb {
   static void registerWith(Registrar registrar) {
-    final MethodChannel channel = MethodChannel(
-      'audio_session',
-      const StandardMethodCodec(),
-      registrar.messenger,
-    );
-
-    final pluginInstance = AudioSessionWeb();
-    channel.setMethodCallHandler(pluginInstance.handleMethodCall);
+    AudioSessionWeb(registrar);
   }
 
-  /// Handles method calls over the MethodChannel of this plugin.
-  /// Note: Check the "federated" architecture for a new way of doing this:
-  /// https://flutter.dev/go/federated-plugins
+  final MethodChannel _channel;
+  dynamic _configuration;
+
+  AudioSessionWeb(Registrar registrar)
+      : _channel = MethodChannel(
+          'com.ryanheise.audio_session',
+          const StandardMethodCodec(),
+          registrar.messenger,
+        ) {
+    _channel.setMethodCallHandler(handleMethodCall);
+  }
+
   Future<dynamic> handleMethodCall(MethodCall call) async {
+    final args = call.arguments;
     switch (call.method) {
-      case 'getPlatformVersion':
-        return getPlatformVersion();
+      case 'setConfiguration':
+        _configuration = args[0];
+        _channel.invokeMethod('onConfigurationChanged', [_configuration]);
         break;
+      case 'getConfiguration':
+        return _configuration;
       default:
         throw PlatformException(
           code: 'Unimplemented',
-          details: 'audio_session for web doesn\'t implement \'${call.method}\'',
+          details:
+              'audio_session for web doesn\'t implement \'${call.method}\'',
         );
     }
-  }
-
-  /// Returns a [String] containing the version of the platform.
-  Future<String> getPlatformVersion() {
-    final version = html.window.navigator.userAgent;
-    return Future.value(version);
   }
 }
