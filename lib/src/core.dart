@@ -14,7 +14,6 @@ import 'darwin.dart';
 ///
 /// You obtain the singleton [instance] of this class, [configure] it during
 /// your app's startup, and then use other plugins to play or record audio.
-/// When your app is finished with the audio session, you should [close] it.
 class AudioSession {
   static const MethodChannel _channel =
       const MethodChannel('com.ryanheise.audio_session');
@@ -59,7 +58,7 @@ class AudioSession {
       }
     });
     _androidAudioManager?.becomingNoisyEventStream
-        ?.listen(_becomingNoisyEventSubject.add);
+        ?.listen((event) => _becomingNoisyEventSubject.add(event));
     _channel.setMethodCallHandler((MethodCall call) async {
       final List args = call.arguments;
       switch (call.method) {
@@ -181,17 +180,6 @@ class AudioSession {
       }
     }
     return true;
-  }
-
-  /// Closes this audio session. An app should call this when it is finished
-  /// playing audio.
-  Future<void> close() async {
-    await setActive(false);
-    _avAudioSession?.close();
-    _androidAudioManager?.close();
-    _configurationSubject.close();
-    _interruptionEventSubject.close();
-    _becomingNoisyEventSubject.close();
   }
 }
 

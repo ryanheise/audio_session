@@ -32,14 +32,6 @@ class _MyAppState extends State<MyApp> {
     });
   }
 
-  @override
-  void dispose() {
-    AudioSession.instance.then((audioSession) {
-      audioSession.close();
-    });
-    super.dispose();
-  }
-
   void _handleInterruptions(AudioSession audioSession) {
     bool playInterrupted = false;
     audioSession.becomingNoisyEventStream.listen((_) {

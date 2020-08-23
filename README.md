@@ -18,16 +18,28 @@ audio_session lets you remove this concern from the individual audio plugins and
 
 ## For app developers
 
-Configure your audio session during app initialisation:
+Obtain the AudioSession singleton from any `FlutterEngine`:
 
 ```dart
-// Obtain the AudioSession singleton (from any FlutterEngine)
 final session = await AudioSession.instance;
-// Configure your app for playing music:
+```
+
+Configure your app for playing music:
+
+```dart
 await session.configure(AudioSessionConfiguration.music());
-// Or, configure your app for playing podcasts/audiobooks:
+```
+
+Configure your app for playing podcasts/audiobooks:
+
+```dart
+// Configure your app for playing podcasts/audiobooks:
 await session.configure(AudioSessionConfiguration.speech());
-// Or, use a custom configuration:
+```
+
+Use a custom configuration:
+
+```dart
 await session.configure(AudioSessionConfiguration(
   avAudioSessionCategory: AVAudioSessionCategory.playAndRecord,
   avAudioSessionCategoryOptions: AVAudioSessionCategoryOptions.allowBluetooth,
@@ -70,6 +82,14 @@ session.interruptionEventStream.listen((event) {
         break;
     }
   }
+});
+```
+
+Observe unplugged headphones:
+
+```dart
+session.becomingNoisyEventStream.listen((_) {
+  // The user unplugged the headphones, so we should pause or lower the volume.
 });
 ```
 
