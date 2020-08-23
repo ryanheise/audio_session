@@ -17,12 +17,12 @@ import java.util.Map;
 
 public class AndroidAudioManager implements MethodCallHandler {
 	private static List<AndroidAudioManager> instances = new ArrayList<>();
+	private static AudioFocusRequestCompat audioFocusRequest;
 
 	private Context applicationContext;
 	private BinaryMessenger messenger;
 	private MethodChannel channel;
 	private AudioManager audioManager;
-	private AudioFocusRequestCompat audioFocusRequest;
 
 	public AndroidAudioManager(Context applicationContext, BinaryMessenger messenger) {
 		this.applicationContext = applicationContext;
@@ -98,8 +98,9 @@ public class AndroidAudioManager implements MethodCallHandler {
 	}
 
 	public void dispose() {
-		channel.setMethodCallHandler(null);
 		instances.remove(this);
+		if (instances.size() == 0) abandonAudioFocus();
+		channel.setMethodCallHandler(null);
 	}
 
 	private void invokeMethod(String method, Object... args) {

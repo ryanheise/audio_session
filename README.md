@@ -1,16 +1,24 @@
 # audio_session
 
-This plugin configures your app's audio category and settings on Android and iOS. This is essential to:
+This plugin configures the iOS audio session category and Android audio attributes for your app, and manages your app's audio focus, mixing and ducking behaviour. This is essential to:
 
 * Communicate to the operating system what type of audio your app intends to play.
 * Specify how your app interacts with other audio apps on the device.
-* Centralise the configuration of system audio settings so that different audio plugins within your app do not overwrite each other's settings (see Section "Managing multiple audio plugins").
+* Centralise the configuration of app-wide system audio settings among different audio plugins (see Section "Managing multiple audio plugins").
 
 The audio_session plugin interfaces with `AudioManager` on Android and `AVAudioSession` on iOS.
 
+## Managing multiple audio plugins
+
+If your app uses multiple audio plugins (e.g. text-to-speech, audio player, audio recorder, speech recognition), you may experience an issue where one plugin will overwrite the system audio settings written by another plugin. For example, An audio recorder plugin may set the iOS audio session category to `record` while an audio player plugin may overwrite this and set it to `playback`. In reality, the ideal choice of category (i.e. `playAndRecord`) is outside the concern of either plugin.
+
+Similarly, an audio recorder plugin may configure the ducking behaviour on Android so that audio should not be ducked, while an audio player plugin may configure your app so that audio can be ducked. Whichever plugin loads second will overwrite the settings of the first, where in reality, the ideal behaviour of audio focus is outside the concern of either plugin.
+
+audio_session lets you remove this concern from the individual audio plugins and configure your app-wide settings globally. 
+
 ## For app developers
 
-Configure your audio session on app initialisation:
+Configure your audio session during app initialisation:
 
 ```dart
 // Obtain the AudioSession singleton (from any FlutterEngine)
@@ -70,27 +78,31 @@ session.interruptionEventStream.listen((event) {
 When the plugin is about to play or record audio:
 
 ```dart
-final session = await AudioSession.instance;
-// If the app didn't already configure the session
-if (!session.isConfigured) {
-  // Set an appropriate default configuration
-  await session.configure(...);
+// Activate the audio session.
+if (await session.setActive(true)) {
+  // Now play or record audio
+} else {
+  // The request was denied and the app should not play audio
+  // e.g. a phonecall is in progress.
 }
-// Activate the audio session
-await session.setActive(true);
-// Now play or record audio
 ```
 
-A convenience method for the above:
+If a plugin can handle audio interruptions, it is preferable to provide an option to turn this feature on or off. e.g.:
 
 ```dart
-// Ensure the audio session is ready to play or record
-await AudioSession.ensurePrepared();
-// Now play or record audio
+player = AudioPlayer(handleInterruptions: false);
 ```
 
-## Managing multiple audio plugins
+Note that iOS and Android have fundamentally different ways to set the audio attributes and categories: for iOS it is app-wide, while for Android it is per player or audio track. As such, `audioSession.configure()` can and does set the app-wide configuration on iOS immediately, while on Android these app-wide settings are stored within audio_session and can be obtained by individual audio plugins via a Stream. The following code shows how a player plugin can listen for changes to the Android AudioAttributes and apply them:
 
-The Flutter plugin ecosystem contains a rich set of open source plugins for playing audio, recording audio, playing text to speech, etc. However, using these plugins within the same app can often lead to conflicts where one plugin will overwrite the system audio settings written by another plugin. For example, An audio recorder plugin may set the iOS audio session category to `record` while an audio player plugin may overwrite this and set it to `playback`. In reality, the ideal choice of category (i.e. `playAndRecord`) is outside the concern of either plugin. Similarly, an audio recorder plugin may configure the ducking behaviour on Android so that audio should not be ducked, while an audio player plugin may configure your app so that audio can be ducked. Whichever plugin loads second will overwrite the settings of the first, where in reality, the ideal behaviour of audio focus is outside the concern of either plugin.
+```dart
+audioSession.configurationStream
+    .map((conf) => conf?.androidAudioAttributes)
+    .distinct()
+    .listen((attributes) {
+  // apply the attributes to this Android audio track
+  _channel.invokeMethod("setAudioAttributes", attributes.toJson());
+});
+```
 
-Rather than place this concern into the individual audio plugins, you can use audio_session to configure your app-wide audio settings in one place during your app's initialisation.
+`configurationStream` will always emit the latest configuration as the first event upon subscribing, and so the above code will handle both the initial configuration choice and subsequent changes to it throughout the life of the app.

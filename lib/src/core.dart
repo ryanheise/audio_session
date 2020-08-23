@@ -32,26 +32,6 @@ class AudioSession {
     return _instance;
   }
 
-  /// Used by audio plugins to ensure that the audio session is ready to play
-  /// or record audio. The [fallbackConfiguration] defaults to
-  /// [AudioSessionConfiguration.music] and this will be configured if no
-  /// configuration has already been set by the app. If [ensureActive] is
-  /// `true` (the default), this method will also activate the audio session.
-  static Future<AudioSession> ensurePrepared({
-    AudioSessionConfiguration fallbackConfiguration =
-        const AudioSessionConfiguration.music(),
-    bool ensureActive = true,
-  }) async {
-    final instance = await AudioSession.instance;
-    if (!instance.isConfigured) {
-      await instance.configure(fallbackConfiguration);
-    }
-    if (ensureActive) {
-      await instance.setActive(true);
-    }
-    return instance;
-  }
-
   AndroidAudioManager _androidAudioManager =
       !kIsWeb && Platform.isAndroid ? AndroidAudioManager() : null;
   AVAudioSession _avAudioSession =
@@ -126,9 +106,18 @@ class AudioSession {
     await _channel.invokeMethod('setConfiguration', [_configuration.toJson()]);
   }
 
-  /// Activates or deactivates this audio session. Typically an audio
-  /// plugin should call this method when it begins playing audio.
-  Future<bool> setActive(bool active) async {
+  /// Activates or deactivates this audio session. Typically an audio plugin
+  /// should call this method when it begins playing audio. If the audio
+  /// session is not yet configured at the time this is called, the
+  /// [fallbackConfiguration] will be used.
+  Future<bool> setActive(
+    bool active, {
+    AudioSessionConfiguration fallbackConfiguration =
+        const AudioSessionConfiguration.music(),
+  }) async {
+    if (!isConfigured) {
+      await configure(fallbackConfiguration);
+    }
     if (!kIsWeb && Platform.isIOS) {
       return await _avAudioSession.setActive(active,
           avOptions: _configuration.avAudioSessionSetActiveOptions);
