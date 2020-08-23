@@ -110,9 +110,9 @@ packages:
   just_audio:
     dependency: "direct main"
     description:
-      path: "../../just_audio"
-      relative: true
-    source: path
+      name: just_audio
+      url: "https://pub.dartlang.org"
+    source: hosted
     version: "0.3.4"
   matcher:
     dependency: transitive

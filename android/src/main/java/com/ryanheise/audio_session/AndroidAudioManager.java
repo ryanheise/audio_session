@@ -1,6 +1,9 @@
 package com.ryanheise.audio_session;
 
+import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.media.AudioManager;
 import androidx.media.AudioAttributesCompat;
 import androidx.media.AudioFocusRequestCompat;
@@ -18,6 +21,7 @@ import java.util.Map;
 public class AndroidAudioManager implements MethodCallHandler {
 	private static List<AndroidAudioManager> instances = new ArrayList<>();
 	private static AudioFocusRequestCompat audioFocusRequest;
+	private static BroadcastReceiver noisyReceiver;
 
 	private Context applicationContext;
 	private BinaryMessenger messenger;
@@ -31,6 +35,7 @@ public class AndroidAudioManager implements MethodCallHandler {
 		channel.setMethodCallHandler(this);
 		audioManager = (AudioManager)applicationContext.getSystemService(Context.AUDIO_SERVICE);
 		instances.add(this);
+		registerNoisyReceiver();
 	}
 
 	@Override
@@ -83,6 +88,25 @@ public class AndroidAudioManager implements MethodCallHandler {
 		}
 	}
 
+	private void registerNoisyReceiver() {
+		if (noisyReceiver != null) return;
+		noisyReceiver = new BroadcastReceiver() {
+			@Override
+			public void onReceive(Context context, Intent intent) {
+				if (AudioManager.ACTION_AUDIO_BECOMING_NOISY.equals(intent.getAction())) {
+					invokeMethod("onBecomingNoisy");
+				}
+			}
+		};
+		applicationContext.registerReceiver(noisyReceiver, new IntentFilter(AudioManager.ACTION_AUDIO_BECOMING_NOISY));
+	}
+
+	private void unregisterNoisyReceiver() {
+		if (noisyReceiver == null) return;
+		applicationContext.unregisterReceiver(noisyReceiver);
+		noisyReceiver = null;
+	}
+
 	private AudioAttributesCompat decodeAudioAttributes(Map<?, ?> attributes) {
 		AudioAttributesCompat.Builder builder = new AudioAttributesCompat.Builder();
 		if (attributes.get("contentType") != null) {
@@ -99,7 +123,10 @@ public class AndroidAudioManager implements MethodCallHandler {
 
 	public void dispose() {
 		instances.remove(this);
-		if (instances.size() == 0) abandonAudioFocus();
+		if (instances.size() == 0) {
+			abandonAudioFocus();
+			unregisterNoisyReceiver();
+		}
 		channel.setMethodCallHandler(null);
 	}
 

@@ -39,6 +39,7 @@ class AudioSession {
   AudioSessionConfiguration _configuration;
   final _configurationSubject = BehaviorSubject<AudioSessionConfiguration>();
   final _interruptionEventSubject = PublishSubject<AudioInterruptionEvent>();
+  final _becomingNoisyEventSubject = PublishSubject<void>();
 
   AudioSession._() {
     _avAudioSession?.interruptionNotificationStream?.listen((notification) {
@@ -57,6 +58,8 @@ class AudioSession {
           break;
       }
     });
+    _androidAudioManager?.becomingNoisyEventStream
+        ?.listen(_becomingNoisyEventSubject.add);
     _channel.setMethodCallHandler((MethodCall call) async {
       final List args = call.arguments;
       switch (call.method) {
@@ -89,6 +92,11 @@ class AudioSession {
   /// A stream of [AudioInterruptionEvent]s.
   Stream<AudioInterruptionEvent> get interruptionEventStream =>
       _interruptionEventSubject.stream;
+
+  /// A stream of events that occur when audio becomes noisy (e.g. due to
+  /// unplugging the headphones).
+  Stream<void> get becomingNoisyEventStream =>
+      _becomingNoisyEventSubject.stream;
 
   /// Configures the audio session. It is useful to call this method during
   /// your app's initialisation before you start playing or recording any
@@ -180,8 +188,10 @@ class AudioSession {
   Future<void> close() async {
     await setActive(false);
     _avAudioSession?.close();
+    _androidAudioManager?.close();
     _configurationSubject.close();
     _interruptionEventSubject.close();
+    _becomingNoisyEventSubject.close();
   }
 }
 

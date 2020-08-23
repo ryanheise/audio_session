@@ -1,5 +1,52 @@
 import 'package:flutter/services.dart';
 import 'package:meta/meta.dart';
+import 'package:rxdart/rxdart.dart';
+
+class AndroidAudioManager {
+  static const MethodChannel _channel =
+      const MethodChannel('com.ryanheise.android_audio_manager');
+  static AndroidAudioManager _instance;
+
+  final _becomingNoisyEventSubject = PublishSubject<void>();
+  AndroidOnAudioFocusChanged _onAudioFocusChanged;
+
+  factory AndroidAudioManager() {
+    if (_instance == null) _instance = AndroidAudioManager._();
+    return _instance;
+  }
+
+  AndroidAudioManager._() {
+    _channel.setMethodCallHandler((MethodCall call) async {
+      final List args = call.arguments;
+      switch (call.method) {
+        case 'onAudioFocusChanged':
+          if (_onAudioFocusChanged != null) {
+            _onAudioFocusChanged(AndroidAudioFocus.values[args[0]]);
+          }
+          break;
+        case 'onBecomingNoisy':
+          _becomingNoisyEventSubject.add(null);
+          break;
+      }
+    });
+  }
+
+  Stream<void> get becomingNoisyEventStream =>
+      _becomingNoisyEventSubject.stream;
+
+  Future<bool> requestAudioFocus(AndroidAudioFocusRequest focusRequest) async {
+    _onAudioFocusChanged = focusRequest.onAudioFocusChanged;
+    return await _channel
+        .invokeMethod('requestAudioFocus', [focusRequest.toJson()]);
+  }
+
+  Future<bool> abandonAudioFocus() =>
+      _channel.invokeMethod('abandonAudioFocus');
+
+  void close() {
+    _becomingNoisyEventSubject.close();
+  }
+}
 
 /// Describes to the Android platform what kind of audio you intend to play.
 class AndroidAudioAttributes {
@@ -109,41 +156,6 @@ class AndroidAudioFocusGainType {
   final int index;
 
   const AndroidAudioFocusGainType._(this.index);
-}
-
-class AndroidAudioManager {
-  static const MethodChannel _channel =
-      const MethodChannel('com.ryanheise.android_audio_manager');
-  static AndroidAudioManager _instance;
-
-  AndroidOnAudioFocusChanged _onAudioFocusChanged;
-
-  factory AndroidAudioManager() {
-    if (_instance == null) _instance = AndroidAudioManager._();
-    return _instance;
-  }
-
-  AndroidAudioManager._() {
-    _channel.setMethodCallHandler((MethodCall call) async {
-      final List args = call.arguments;
-      switch (call.method) {
-        case 'onAudioFocusChanged':
-          if (_onAudioFocusChanged != null) {
-            _onAudioFocusChanged(AndroidAudioFocus.values[args[0]]);
-          }
-          break;
-      }
-    });
-  }
-
-  Future<bool> requestAudioFocus(AndroidAudioFocusRequest focusRequest) async {
-    _onAudioFocusChanged = focusRequest.onAudioFocusChanged;
-    return await _channel
-        .invokeMethod('requestAudioFocus', [focusRequest.toJson()]);
-  }
-
-  Future<bool> abandonAudioFocus() =>
-      _channel.invokeMethod('abandonAudioFocus');
 }
 
 class AndroidAudioFocusRequest {

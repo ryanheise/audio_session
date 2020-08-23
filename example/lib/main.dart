@@ -2,7 +2,7 @@ import 'dart:math';
 
 import 'package:audio_session/audio_session.dart';
 import 'package:flutter/material.dart';
-import 'package:just_audio/just_audio.dart';
+import 'package:just_audio/just_audio.dart' as ja;
 
 void main() {
   runApp(MyApp());
@@ -14,7 +14,7 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-  final _player = AudioPlayer();
+  final _player = ja.AudioPlayer();
 
   @override
   void initState() {
@@ -32,10 +32,25 @@ class _MyAppState extends State<MyApp> {
     });
   }
 
+  @override
+  void dispose() {
+    AudioSession.instance.then((audioSession) {
+      audioSession.close();
+    });
+    super.dispose();
+  }
+
   void _handleInterruptions(AudioSession audioSession) {
     bool playInterrupted = false;
+    audioSession.becomingNoisyEventStream.listen((_) {
+      _player.pause();
+    });
     _player.playingStream.listen((playing) {
       playInterrupted = false;
+      // Temporary as the just_audio 0.3.4 doesn't activate the audio session.
+      if (playing) {
+        audioSession.setActive(true);
+      }
     });
     audioSession.interruptionEventStream.listen((event) {
       if (event.begin) {
@@ -83,11 +98,11 @@ class _MyAppState extends State<MyApp> {
           title: const Text('audio_session example'),
         ),
         body: Center(
-          child: StreamBuilder<PlayerState>(
+          child: StreamBuilder<ja.PlayerState>(
             stream: _player.playerStateStream,
             builder: (context, snapshot) {
               final playerState = snapshot.data;
-              if (playerState?.processingState != ProcessingState.ready) {
+              if (playerState?.processingState != ja.ProcessingState.ready) {
                 return Container(
                   margin: EdgeInsets.all(8.0),
                   width: 64.0,
