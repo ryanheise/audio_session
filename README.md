@@ -1,45 +1,37 @@
 # audio_session
 
-This plugin configures the iOS audio session category and Android audio attributes for your app, and manages your app's audio focus, mixing and ducking behaviour. This is essential to:
+This plugin configures your app's audio category and configures how your app interacts with other audio apps.
 
-* Communicate to the operating system what type of audio your app intends to play.
-* Specify how your app interacts with other audio apps on the device.
-* Centralise the configuration of app-wide system audio settings among different audio plugins (see Section "Managing multiple audio plugins").
+Audio apps often have unique requirements. For example, when a navigator app voices driving instructions, a music player should duck its audio while a podcast player should pause its audio. Depending on which one of these three apps you are building, you will need to configure your app's audio settings and callbacks to appropriately handle these interactions.
 
-The audio_session plugin interfaces with `AudioManager` on Android and `AVAudioSession` on iOS.
+This plugin can be used both by app developers, to initialise appropriate audio settings for their app, and by plugin authors, to provide easy access to low level features of iOS's AVAudioSession and Android's AudioManager in Dart.
 
-## Managing multiple audio plugins
+Note: If your app uses a number of different audio plugins, e.g. any combination of audio recording, text to speech, background audio, audio playing, or speech recognition, it is possible that those plugins may internally overwrite each other's choice of global system audio settings, including the ones you set via this plugin. You may consider asking the developer of each audio plugin you use to provide an option to not overwrite these global settings and allow them be managed externally.
 
-If your app uses multiple audio plugins (e.g. text-to-speech, audio player, audio recorder, speech recognition), you may experience an issue where one plugin will overwrite the system audio settings written by another plugin. For example, An audio recorder plugin may set the iOS audio session category to `record` while an audio player plugin may overwrite this and set it to `playback`. In reality, the ideal choice of category (i.e. `playAndRecord`) is outside the concern of either plugin.
-
-Similarly, an audio recorder plugin may configure the ducking behaviour on Android so that audio should not be ducked, while an audio player plugin may configure your app so that audio can be ducked. Whichever plugin loads second will overwrite the settings of the first, where in reality, the ideal behaviour of audio focus is outside the concern of either plugin.
-
-audio_session lets you remove this concern from the individual audio plugins and configure your app-wide settings globally. 
+The following sections describe how audio_session can be used by both app developers and plugin authors.
 
 ## For app developers
 
-Obtain the AudioSession singleton from any `FlutterEngine`:
-
-```dart
-final session = await AudioSession.instance;
-```
+An app should configure the audio session during app initialisation to indicate what type of audio it intends to play and how it should interact with other audio apps on the device. There are a number of preset recipe configurations available.
 
 Configure your app for playing music:
 
 ```dart
+final session = await AudioSession.instance;
 await session.configure(AudioSessionConfiguration.music());
 ```
 
 Configure your app for playing podcasts/audiobooks:
 
 ```dart
-// Configure your app for playing podcasts/audiobooks:
+final session = await AudioSession.instance;
 await session.configure(AudioSessionConfiguration.speech());
 ```
 
-Use a custom configuration:
+Or use a custom configuration:
 
 ```dart
+final session = await AudioSession.instance;
 await session.configure(AudioSessionConfiguration(
   avAudioSessionCategory: AVAudioSessionCategory.playAndRecord,
   avAudioSessionCategoryOptions: AVAudioSessionCategoryOptions.allowBluetooth,
@@ -56,7 +48,9 @@ await session.configure(AudioSessionConfiguration(
 ));
 ```
 
-Observe audio interruptions:
+Individual audio plugins that you use may provide an option to handle audio interruptions (e.g. phone calls, navigator instructions or notifications). If your app has specialised requirements, you may prefer to disable that option and implement it yourself by interfacing directly with the audio session.
+
+Observe interruptions to the audio session:
 
 ```dart
 session.interruptionEventStream.listen((event) {
@@ -95,19 +89,21 @@ session.becomingNoisyEventStream.listen((_) {
 
 ## For plugin authors
 
-When the plugin is about to play or record audio:
+This plugin provides easy access to the iOS AVAudioSession and Android AudioManager APIs from Dart, and provides a unified API to activate the audio session for both platforms:
 
 ```dart
-// Activate the audio session.
+// Activate the audio session before playing or recording audio.
 if (await session.setActive(true)) {
-  // Now play or record audio
+  // Now play or record audio.
 } else {
   // The request was denied and the app should not play audio
   // e.g. a phonecall is in progress.
 }
 ```
 
-If a plugin can handle audio interruptions, it is preferable to provide an option to turn this feature on or off. e.g.:
+On iOS this calls `AVAudioSession.setActive` and on Android this calls `AudioManager.requestAudioFocus`. In addition to calling the lower level APIs, it also registers callbacks and forwards events to Dart via the streams `AudioSession.interruptionEventStream` and `AudioSession.becomingNoisyEventStream`. This allows both plugins and apps to interface with a shared instance of the audio focus request and audio session without conflict.
+
+If a plugin can handle audio interruptions (i.e. by listening to the `interruptionEventStream` and automatically pausing audio), it is preferable to provide an option to turn this feature on or off, since some apps may have specialised requirements. e.g.:
 
 ```dart
 player = AudioPlayer(handleInterruptions: false);
@@ -124,5 +120,7 @@ audioSession.configurationStream
   _channel.invokeMethod("setAudioAttributes", attributes.toJson());
 });
 ```
+
+All numeric values encoded in `AndroidAudioAttributes.toJson()` correspond exactly to the Android platform constants.
 
 `configurationStream` will always emit the latest configuration as the first event upon subscribing, and so the above code will handle both the initial configuration choice and subsequent changes to it throughout the life of the app.
