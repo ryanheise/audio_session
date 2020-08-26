@@ -13,7 +13,9 @@ import 'darwin.dart';
 /// system the nature of the audio that your app intends to play.
 ///
 /// You obtain the singleton [instance] of this class, [configure] it during
-/// your app's startup, and then use other plugins to play or record audio.
+/// your app's startup, and then use other plugins to play or record audio. An
+/// app will typically not call [setActive] directly since individual audio
+/// plugins will call this before they play or record audio.
 class AudioSession {
   static const MethodChannel _channel =
       const MethodChannel('com.ryanheise.audio_session');
@@ -116,9 +118,16 @@ class AudioSession {
   /// Activates or deactivates this audio session. Typically an audio plugin
   /// should call this method when it begins playing audio. If the audio
   /// session is not yet configured at the time this is called, the
-  /// [fallbackConfiguration] will be used.
+  /// [fallbackConfiguration] will be set. If any of
+  /// [avAudioSessionSetActiveOptions], [androidAudioFocusGainType],
+  /// [androidAudioAttributesttributes] and [androidWillPauseWhenDucked] are
+  /// speficied, they will override the configuration.
   Future<bool> setActive(
     bool active, {
+    AVAudioSessionSetActiveOptions avAudioSessionSetActiveOptions,
+    AndroidAudioFocusGainType androidAudioFocusGainType,
+    AndroidAudioAttributes androidAudioAttributes,
+    bool androidWillPauseWhenDucked,
     AudioSessionConfiguration fallbackConfiguration =
         const AudioSessionConfiguration.music(),
   }) async {
@@ -127,7 +136,8 @@ class AudioSession {
     }
     if (!kIsWeb && Platform.isIOS) {
       return await _avAudioSession.setActive(active,
-          avOptions: _configuration.avAudioSessionSetActiveOptions);
+          avOptions: avAudioSessionSetActiveOptions ??
+              _configuration.avAudioSessionSetActiveOptions);
     } else if (!kIsWeb && Platform.isAndroid) {
       if (active) {
         // Activate
@@ -136,9 +146,12 @@ class AudioSession {
         var ducked = false;
         final success = await _androidAudioManager
             .requestAudioFocus(AndroidAudioFocusRequest(
-          gainType: _configuration.androidAudioFocusGainType,
-          audioAttributes: _configuration.androidAudioAttributes,
-          willPauseWhenDucked: _configuration.androidWillPauseWhenDucked,
+          gainType: androidAudioFocusGainType ??
+              _configuration.androidAudioFocusGainType,
+          audioAttributes:
+              androidAudioAttributes ?? _configuration.androidAudioAttributes,
+          willPauseWhenDucked: androidWillPauseWhenDucked ??
+              _configuration.androidWillPauseWhenDucked,
           onAudioFocusChanged: (focus) {
             switch (focus) {
               case AndroidAudioFocus.gain:
