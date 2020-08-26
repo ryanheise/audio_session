@@ -1,3 +1,8 @@
+## 0.0.3
+
+* Add bitwise operations to flags and options.
+* Add AudioSessionConfiguration.copyWith.
+
 ## 0.0.2
 
 * Lower min sdk to 1.12.13+hotfix.5
