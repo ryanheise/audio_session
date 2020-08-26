@@ -302,6 +302,36 @@ class AudioSessionConfiguration {
           androidWillPauseWhenDucked: true,
         );
 
+  /// Creates a copy of this configuration with the given fields replaced by
+  /// new values.
+  AudioSessionConfiguration copyWith({
+    AVAudioSessionCategory avAudioSessionCategory,
+    AVAudioSessionCategoryOptions avAudioSessionCategoryOptions,
+    AVAudioSessionMode avAudioSessionMode,
+    AVAudioSessionRouteSharingPolicy avAudioSessionRouteSharingPolicy,
+    AVAudioSessionSetActiveOptions avAudioSessionSetActiveOptions,
+    AndroidAudioAttributes androidAudioAttributes,
+    AndroidAudioFocusGainType androidAudioFocusGainType,
+    bool androidWillPauseWhenDucked,
+  }) =>
+      AudioSessionConfiguration(
+        avAudioSessionCategory:
+            avAudioSessionCategory ?? this.avAudioSessionCategory,
+        avAudioSessionCategoryOptions:
+            avAudioSessionCategoryOptions ?? this.avAudioSessionCategoryOptions,
+        avAudioSessionMode: avAudioSessionMode ?? this.avAudioSessionMode,
+        avAudioSessionRouteSharingPolicy: avAudioSessionRouteSharingPolicy ??
+            this.avAudioSessionRouteSharingPolicy,
+        avAudioSessionSetActiveOptions: avAudioSessionSetActiveOptions ??
+            this.avAudioSessionSetActiveOptions,
+        androidAudioAttributes:
+            androidAudioAttributes ?? this.androidAudioAttributes,
+        androidAudioFocusGainType:
+            androidAudioFocusGainType ?? this.androidAudioFocusGainType,
+        androidWillPauseWhenDucked:
+            androidWillPauseWhenDucked ?? this.androidWillPauseWhenDucked,
+      );
+
   // Converts this instance to JSON.
   Map toJson() => {
         'avAudioSessionCategory': avAudioSessionCategory?.index,
