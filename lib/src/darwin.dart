@@ -28,7 +28,7 @@ class AVAudioSession {
           _interruptionNotificationSubject
               .add(AVAudioSessionInterruptionNotification(
             type: AVAudioSessionInterruptionType.values[args[0]],
-            options: AVAudioSessionInterruptionOptions._(args[1]),
+            options: AVAudioSessionInterruptionOptions(args[1]),
           ));
           break;
       }
@@ -58,8 +58,10 @@ class AVAudioSession {
           ?.map((index) => AVAudioSessionCategory.values[index as int])
           ?.toList();
 
-  Future<int> get categoryOptions =>
-      _channel.invokeMethod('getCategoryOptions');
+  Future<AVAudioSessionCategoryOptions> get categoryOptions async {
+    final int value = await _channel.invokeMethod('getCategoryOptions');
+    return value == null ? null : AVAudioSessionCategoryOptions(value);
+  }
 
   Future<AVAudioSessionMode> get mode async {
     final int index = await _channel.invokeMethod('getMode');
@@ -289,6 +291,13 @@ class AVAudioSessionCategoryOptions {
           AVAudioSessionCategoryOptions option) =>
       AVAudioSessionCategoryOptions(value | option.value);
 
+  AVAudioSessionCategoryOptions operator &(
+          AVAudioSessionCategoryOptions option) =>
+      AVAudioSessionCategoryOptions(value & option.value);
+
+  bool contains(AVAudioSessionInterruptionOptions options) =>
+      options.value & value == options.value;
+
   @override
   bool operator ==(Object option) =>
       option is AVAudioSessionCategoryOptions && value == option.value;
@@ -332,6 +341,13 @@ class AVAudioSessionSetActiveOptions {
           AVAudioSessionSetActiveOptions option) =>
       AVAudioSessionSetActiveOptions(value | option.value);
 
+  AVAudioSessionSetActiveOptions operator &(
+          AVAudioSessionSetActiveOptions option) =>
+      AVAudioSessionSetActiveOptions(value & option.value);
+
+  bool contains(AVAudioSessionInterruptionOptions options) =>
+      options.value & value == options.value;
+
   @override
   bool operator ==(Object option) =>
       option is AVAudioSessionSetActiveOptions && value == option.value;
@@ -362,17 +378,21 @@ enum AVAudioSessionInterruptionType { began, ended }
 /// The interruption options for [AVAudioSessionInterruptionNotification].
 class AVAudioSessionInterruptionOptions {
   static const AVAudioSessionInterruptionOptions none =
-      const AVAudioSessionInterruptionOptions._(0);
+      const AVAudioSessionInterruptionOptions(0);
   static const AVAudioSessionInterruptionOptions shouldResume =
-      const AVAudioSessionInterruptionOptions._(1);
+      const AVAudioSessionInterruptionOptions(1);
 
   final int value;
 
-  const AVAudioSessionInterruptionOptions._(this.value);
+  const AVAudioSessionInterruptionOptions(this.value);
 
   AVAudioSessionInterruptionOptions operator |(
           AVAudioSessionInterruptionOptions option) =>
-      AVAudioSessionInterruptionOptions._(value | option.value);
+      AVAudioSessionInterruptionOptions(value | option.value);
+
+  AVAudioSessionInterruptionOptions operator &(
+          AVAudioSessionInterruptionOptions option) =>
+      AVAudioSessionInterruptionOptions(value & option.value);
 
   bool contains(AVAudioSessionInterruptionOptions options) =>
       options.value & value == options.value;
@@ -402,7 +422,7 @@ class AVAudioSessionInterruptionOptions {
 //  final List<AVAudioSessionPortDescription> inputs;
 //  final List<AVAudioSessionPortDescription> outputs;
 //
-//  AVAudioSessionRouteDescription._(this.inputs, this.outputs);
+//  AVAudioSessionRouteDescription(this.inputs, this.outputs);
 //}
 //
 //class AVAudioSessionPortDescription {
@@ -417,7 +437,7 @@ class AVAudioSessionInterruptionOptions {
 //  final AVAudioSessionDataSourceDescription selectedDataSource;
 //  AVAudioSessionDataSourceDescription _preferredDataSource;
 //
-//  AVAudioSessionPortDescription._(
+//  AVAudioSessionPortDescription(
 //    this._channel,
 //    this.portName,
 //    this.portType,
@@ -491,7 +511,7 @@ class AVAudioSessionInterruptionOptions {
 //  final List<AVAudioSessionPolarPattern> supportedPolarPatterns;
 //  AVAudioSessionPolarPattern _preferredPolarPattern;
 //
-//  AVAudioSessionDataSourceDescription._(
+//  AVAudioSessionDataSourceDescription(
 //    this._channel,
 //    this.id,
 //    this.name,
@@ -533,7 +553,7 @@ class AVAudioSessionInterruptionOptions {
 //  final bool shouldStartPlayback;
 //  final AVAudioSessionRouteSelection routeSelection;
 //
-//  AVPreparePlaybackRouteResult._(this.shouldStartPlayback, this.routeSelection);
+//  AVPreparePlaybackRouteResult(this.shouldStartPlayback, this.routeSelection);
 //}
 //
 //enum AVAudioSessionRouteSelection { none, local, externalSelection }

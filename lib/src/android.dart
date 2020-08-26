@@ -69,7 +69,7 @@ class AndroidAudioAttributes {
       : this(
           contentType: AndroidAudioContentType.values[data['contentType']],
           flags: AndroidAudioFlags(data['flags']),
-          usage: AndroidAudioUsage(data['usage']),
+          usage: AndroidAudioUsage.values[data['usage']],
         );
 
   Map toJson() => {
@@ -101,6 +101,11 @@ class AndroidAudioFlags {
   AndroidAudioFlags operator |(AndroidAudioFlags flag) =>
       AndroidAudioFlags(value | flag.value);
 
+  AndroidAudioFlags operator &(AndroidAudioFlags flag) =>
+      AndroidAudioFlags(value & flag.value);
+
+  bool contains(AndroidAudioFlags flags) => flags.value & value == flags.value;
+
   @override
   bool operator ==(Object flag) =>
       flag is AndroidAudioFlags && value == flag.value;
@@ -113,30 +118,48 @@ enum AndroidAudioContentType { unknown, speech, music, movie, sonification }
 
 /// The usage options for [AndroidAudioAttributes].
 class AndroidAudioUsage {
-  static const unknown = AndroidAudioUsage(0);
-  static const media = AndroidAudioUsage(1);
-  static const voiceCommunication = AndroidAudioUsage(2);
-  static const voiceCommunicationSignalling = AndroidAudioUsage(3);
-  static const alarm = AndroidAudioUsage(4);
-  static const notification = AndroidAudioUsage(5);
-  static const notificationRingtone = AndroidAudioUsage(6);
-  static const notificationCommunicationRequest = AndroidAudioUsage(7);
-  static const notificationCommunicationInstant = AndroidAudioUsage(8);
-  static const notificationCommunicationDelayed = AndroidAudioUsage(9);
-  static const notificationEvent = AndroidAudioUsage(10);
-  static const assistanceAccessibility = AndroidAudioUsage(11);
-  static const assistanceNavigationGuidance = AndroidAudioUsage(12);
-  static const assistanceSonification = AndroidAudioUsage(13);
-  static const game = AndroidAudioUsage(14);
-  static const assistant = AndroidAudioUsage(16);
+  static const unknown = AndroidAudioUsage._(0);
+  static const media = AndroidAudioUsage._(1);
+  static const voiceCommunication = AndroidAudioUsage._(2);
+  static const voiceCommunicationSignalling = AndroidAudioUsage._(3);
+  static const alarm = AndroidAudioUsage._(4);
+  static const notification = AndroidAudioUsage._(5);
+  static const notificationRingtone = AndroidAudioUsage._(6);
+  static const notificationCommunicationRequest = AndroidAudioUsage._(7);
+  static const notificationCommunicationInstant = AndroidAudioUsage._(8);
+  static const notificationCommunicationDelayed = AndroidAudioUsage._(9);
+  static const notificationEvent = AndroidAudioUsage._(10);
+  static const assistanceAccessibility = AndroidAudioUsage._(11);
+  static const assistanceNavigationGuidance = AndroidAudioUsage._(12);
+  static const assistanceSonification = AndroidAudioUsage._(13);
+  static const game = AndroidAudioUsage._(14);
+  static const assistant = AndroidAudioUsage._(16);
+  static const values = {
+    0: unknown,
+    1: media,
+    2: voiceCommunication,
+    3: voiceCommunicationSignalling,
+    4: alarm,
+    5: notification,
+    6: notificationRingtone,
+    7: notificationCommunicationRequest,
+    8: notificationCommunicationInstant,
+    9: notificationCommunicationDelayed,
+    10: notificationEvent,
+    11: assistanceAccessibility,
+    12: assistanceNavigationGuidance,
+    13: assistanceSonification,
+    14: game,
+    16: assistant,
+  };
 
   final int value;
 
-  const AndroidAudioUsage(this.value);
+  const AndroidAudioUsage._(this.value);
 
   @override
   bool operator ==(Object other) =>
-      other is AndroidAudioFlags && value == other.value;
+      other is AndroidAudioUsage && value == other.value;
 
   int get hashCode => value.hashCode;
 }
