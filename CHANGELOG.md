@@ -1,3 +1,7 @@
+## 0.0.4
+
+* Lower minSdkVersion to 16.
+
 ## 0.0.3
 
 * Add bitwise operations to flags and options.
