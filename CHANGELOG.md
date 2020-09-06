@@ -1,3 +1,7 @@
+## 0.0.5
+
+* Fix music() preset so that iOS notification can appear.
+
 ## 0.0.4
 
 * Lower minSdkVersion to 16.
