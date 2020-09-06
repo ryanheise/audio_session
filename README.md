@@ -12,7 +12,7 @@ The following sections describe how audio_session can be used by both app develo
 
 ## For app developers
 
-An app should configure the audio session during app initialisation to indicate what type of audio it intends to play and how it should interact with other audio apps on the device. There are a number of preset recipe configurations available.
+An app should configure the audio session during app initialisation to indicate what type of audio it intends to play and how it should interact with other audio apps on the device. There are a number of preset recipes available.
 
 Configure your app for playing music:
 
