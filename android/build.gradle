@@ -41,4 +41,6 @@ android {
 dependencies {
     //implementation 'androidx.core:core:1.3.1'
     implementation "androidx.media2:media2-session:1.1.0-alpha01"
+    // TODO: upgrade to 1.2.0 when it gets released.
+    // implementation "androidx.media2:media2-session:1.2.0-beta01"
 }
