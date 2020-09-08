@@ -31,6 +31,13 @@ class AVAudioSession {
             options: AVAudioSessionInterruptionOptions(args[1]),
           ));
           break;
+        case 'onAudioFocusGained':
+          _interruptionNotificationSubject
+              .add(AVAudioSessionInterruptionNotification(
+            type: AVAudioSessionInterruptionType.values[args[0]],
+            options: AVAudioSessionInterruptionOptions(args[1]),
+          ));
+          break;
       }
     });
   }
