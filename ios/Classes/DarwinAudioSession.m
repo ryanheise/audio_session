@@ -396,9 +396,9 @@ static NSMutableArray<DarwinAudioSession *> *sessions = nil;
         case AVAudioSessionInterruptionTypeEnded:
         {
             if ([(NSNumber*)[notification.userInfo valueForKey:AVAudioSessionInterruptionOptionKey] intValue] == AVAudioSessionInterruptionOptionShouldResume) {
-                [self invokeMethod:@"onAudioFocusGained" arguments:@[@(1), @(1)]];
+                [self invokeMethod:@"onInterruptionEvent" arguments:@[@(1), @(1)]];
             } else {
-                [self invokeMethod:@"onAudioFocusGained" arguments:@[@(1), @(0)]];
+                [self invokeMethod:@"onInterruptionEvent" arguments:@[@(1), @(0)]];
             }
             break;
         }
