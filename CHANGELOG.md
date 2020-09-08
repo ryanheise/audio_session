@@ -1,3 +1,7 @@
+## 0.0.6
+
+* Handle AVAudioSessionInterruptionTypeEnded correctly on iOS.
+
 ## 0.0.5
 
 * Fix music() preset so that iOS notification can appear.
