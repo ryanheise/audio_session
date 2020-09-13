@@ -153,6 +153,7 @@ class AudioSession {
           willPauseWhenDucked: androidWillPauseWhenDucked ??
               _configuration.androidWillPauseWhenDucked,
           onAudioFocusChanged: (focus) {
+            print("core onAudioFocusChanged");
             switch (focus) {
               case AndroidAudioFocus.gain:
                 _interruptionEventSubject.add(AudioInterruptionEvent(
@@ -180,7 +181,7 @@ class AudioSession {
                     pauseWhenDucked
                         ? AudioInterruptionType.pause
                         : AudioInterruptionType.duck));
-                ducked = true;
+                if (!pauseWhenDucked) ducked = true;
                 break;
             }
           },
