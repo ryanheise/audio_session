@@ -1,3 +1,8 @@
+## 0.0.7
+
+* Fix bug in androidWillPauseWhenDucked.
+* Improve documentation.
+
 ## 0.0.6
 
 * Handle AVAudioSessionInterruptionTypeEnded correctly on iOS.
