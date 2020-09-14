@@ -40,6 +40,12 @@ class AudioSession {
   AudioSessionConfiguration _configuration;
   final _configurationSubject = BehaviorSubject<AudioSessionConfiguration>();
   final _interruptionEventSubject = PublishSubject<AudioInterruptionEvent>();
+  final _routeChangeReasonSubject =
+      PublishSubject<AVAudioSessionRouteChangeReason>();
+  final _silenceSecondaryAudioHintSubject =
+      PublishSubject<AVAudioSessionSilenceSecondaryAudioHintType>();
+  final _mediaServicesWereLostSubject = PublishSubject<void>();
+  final _mediaServicesWereResetSubject = PublishSubject<void>();
   final _becomingNoisyEventSubject = PublishSubject<void>();
 
   AudioSession._() {
@@ -59,6 +65,12 @@ class AudioSession {
           break;
       }
     });
+    _avAudioSession?.silenceSecondaryAudioHintStream
+        ?.listen((event) => _silenceSecondaryAudioHintSubject.add(event));
+    _avAudioSession?.mediaServicesWereLostStream
+        ?.listen((event) => _mediaServicesWereLostSubject.add(event));
+    _avAudioSession?.mediaServicesWereResetStream
+        ?.listen((event) => _mediaServicesWereResetSubject.add(event));
     _androidAudioManager?.becomingNoisyEventStream
         ?.listen((event) => _becomingNoisyEventSubject.add(event));
     _channel.setMethodCallHandler((MethodCall call) async {
@@ -98,6 +110,25 @@ class AudioSession {
   /// unplugging the headphones).
   Stream<void> get becomingNoisyEventStream =>
       _becomingNoisyEventSubject.stream;
+
+  /// A stream of events that occur when route change is detected (e.g. due to
+  /// unplugging the headphones or new devices detected).
+  Stream<AVAudioSessionRouteChangeReason> get routeChangeReasonStream =>
+      _routeChangeReasonSubject.stream;
+
+  /// A stream of events that occur when another application’s primary audio
+  /// has started and indicate whether optional secondary audio muting should
+  /// begin or end.
+  Stream<AVAudioSessionSilenceSecondaryAudioHintType>
+      get silenceSecondaryAudioHintStream => _silenceSecondaryAudioHintSubject.stream;
+
+  /// A stream of events when occur when a media server restarts.
+  Stream<void> get mediaServicesWereResetStream =>
+      _mediaServicesWereResetSubject.stream;
+
+  /// A stream of events when occur when a media server is lost.
+  Stream<void> get mediaServicesWereLostStream =>
+      _mediaServicesWereLostSubject.stream;
 
   /// Configures the audio session. It is useful to call this method during
   /// your app's initialisation before you start playing or recording any
