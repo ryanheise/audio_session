@@ -1,3 +1,4 @@
+import 'package:audio_session/audio_session.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:rxdart/rxdart.dart';
@@ -9,7 +10,8 @@ class AVAudioSession {
 
   final _interruptionNotificationSubject =
       PublishSubject<AVAudioSessionInterruptionNotification>();
-  final _routeChangeSubject = PublishSubject<AVAudioSessionRouteChangeReason>();
+  final _becomingNoisyEventSubject = PublishSubject<void>();
+  final _routeChangeSubject = PublishSubject<AVAudioSessionRouteChange>();
   final _silenceSecondaryAudioHintSubject =
       PublishSubject<AVAudioSessionSilenceSecondaryAudioHintType>();
   final _mediaServicesWereLostSubject = PublishSubject<void>();
@@ -32,8 +34,12 @@ class AVAudioSession {
           ));
           break;
         case 'onRouteChange':
-          _routeChangeSubject
-              .add(AVAudioSessionRouteChangeReason.values[args[0]]);
+          AVAudioSessionRouteChange routeChange = AVAudioSessionRouteChange(
+              AVAudioSessionRouteChangeReason.values[args[0]], args[1]);
+          _routeChangeSubject.add(routeChange);
+          if (routeChange.shouldInterrupt) {
+            _becomingNoisyEventSubject.add(null);
+          }
           break;
         case 'onSilenceSecondaryAudioHint':
           _silenceSecondaryAudioHintSubject
@@ -53,7 +59,10 @@ class AVAudioSession {
       get interruptionNotificationStream =>
           _interruptionNotificationSubject.stream;
 
-  Stream<AVAudioSessionRouteChangeReason> get routeChangeReasonStream =>
+  Stream<void> get becomingNoisyEventStream =>
+      _becomingNoisyEventSubject.stream;
+
+  Stream<AVAudioSessionRouteChange> get routeChangeReasonStream =>
       _routeChangeSubject.stream;
 
   Stream<AVAudioSessionSilenceSecondaryAudioHintType>
@@ -271,13 +280,6 @@ class AVAudioSession {
   //  return true;
   //}
 
-  void close() {
-    _interruptionNotificationSubject.close();
-    _routeChangeSubject.close();
-    _silenceSecondaryAudioHintSubject.close();
-    _mediaServicesWereLostSubject.close();
-    _mediaServicesWereResetSubject.close();
-  }
 }
 
 /// The categories for [AVAudioSession].
@@ -429,6 +431,21 @@ class AVAudioSessionInterruptionOptions {
       option is AVAudioSessionInterruptionOptions && value == option.value;
 
   int get hashCode => value.hashCode;
+}
+
+/// Temporary class to encapsulate the [AVAudioSessionRouteChangeReason] and
+/// a boolean to indicate if a previous route dropped had headphones port.
+/// Not according to documentation.
+class AVAudioSessionRouteChange {
+  final AVAudioSessionRouteChangeReason routeChangeReason;
+  final int _shouldInterrupt;
+
+  const AVAudioSessionRouteChange(
+      this.routeChangeReason, this._shouldInterrupt);
+
+  bool intToBool(int a) => a == 0 ? false : true;
+
+  bool get shouldInterrupt => intToBool(_shouldInterrupt);
 }
 
 /// The route change reasons for [AVAudioSession].

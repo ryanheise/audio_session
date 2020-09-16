@@ -412,9 +412,18 @@ static NSMutableArray<DarwinAudioSession *> *sessions = nil;
 }
 
 - (void) routeChange:(NSNotification*)notification {
-    NSNumber *routeChangeReasonType = (NSNumber*)[notification.userInfo valueForKey:AVAudioSessionRouteChangeReasonKey];
     NSLog(@"routeChange detected");
-    [self invokeMethod:@"onRouteChange" arguments:@[@([routeChangeReasonType integerValue])]];
+    NSNumber *routeChangeReasonType = (NSNumber*)[notification.userInfo valueForKey:AVAudioSessionRouteChangeReasonKey];
+    AVAudioSessionRouteDescription *previousRouteDescription = [notification.userInfo valueForKey:AVAudioSessionRouteChangePreviousRouteKey];
+    NSNumber *shouldInterrupt = @(0);
+    if (previousRouteDescription) {
+        for (AVAudioSessionPortDescription *output in previousRouteDescription.outputs) {
+            if ([[output portType] isEqualToString:AVAudioSessionPortHeadphones] || [[output portType] isEqualToString:AVAudioSessionPortBluetoothA2DP]) {
+              shouldInterrupt = @(1);
+          }
+        }
+    }
+    [self invokeMethod:@"onRouteChange" arguments:@[@([routeChangeReasonType integerValue]), shouldInterrupt]];
 }
 
 - (void) silenceSecondaryAudio:(NSNotification*)notification {
