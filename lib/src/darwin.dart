@@ -11,7 +11,7 @@ class AVAudioSession {
   final _interruptionNotificationSubject =
       PublishSubject<AVAudioSessionInterruptionNotification>();
   final _becomingNoisyEventSubject = PublishSubject<void>();
-  final _routeChangeSubject = PublishSubject<AVAudioSessionRouteChange>();
+  final _routeChangeSubject = PublishSubject<AVAudioSessionRouteChangeReason>();
   final _silenceSecondaryAudioHintSubject =
       PublishSubject<AVAudioSessionSilenceSecondaryAudioHintType>();
   final _mediaServicesWereLostSubject = PublishSubject<void>();
@@ -34,10 +34,9 @@ class AVAudioSession {
           ));
           break;
         case 'onRouteChange':
-          AVAudioSessionRouteChange routeChange = AVAudioSessionRouteChange(
-              AVAudioSessionRouteChangeReason.values[args[0]], args[1]);
-          _routeChangeSubject.add(routeChange);
-          if (routeChange.shouldInterrupt) {
+          AVAudioSessionRouteChangeReason reason = AVAudioSessionRouteChangeReason.values[args[0]];
+          _routeChangeSubject.add(reason);
+          if (reason == AVAudioSessionRouteChangeReason.oldDeviceUnavailable) {
             _becomingNoisyEventSubject.add(null);
           }
           break;
@@ -62,7 +61,7 @@ class AVAudioSession {
   Stream<void> get becomingNoisyEventStream =>
       _becomingNoisyEventSubject.stream;
 
-  Stream<AVAudioSessionRouteChange> get routeChangeReasonStream =>
+  Stream<AVAudioSessionRouteChangeReason> get routeChangeReasonStream =>
       _routeChangeSubject.stream;
 
   Stream<AVAudioSessionSilenceSecondaryAudioHintType>
@@ -431,21 +430,6 @@ class AVAudioSessionInterruptionOptions {
       option is AVAudioSessionInterruptionOptions && value == option.value;
 
   int get hashCode => value.hashCode;
-}
-
-/// Temporary class to encapsulate the [AVAudioSessionRouteChangeReason] and
-/// a boolean to indicate if a previous route dropped had headphones port.
-/// Not according to documentation.
-class AVAudioSessionRouteChange {
-  final AVAudioSessionRouteChangeReason routeChangeReason;
-  final int _shouldInterrupt;
-
-  const AVAudioSessionRouteChange(
-      this.routeChangeReason, this._shouldInterrupt);
-
-  bool intToBool(int a) => a == 0 ? false : true;
-
-  bool get shouldInterrupt => intToBool(_shouldInterrupt);
 }
 
 /// The route change reasons for [AVAudioSession].
