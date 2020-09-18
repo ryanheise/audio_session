@@ -11,7 +11,7 @@ class AVAudioSession {
   final _interruptionNotificationSubject =
       PublishSubject<AVAudioSessionInterruptionNotification>();
   final _becomingNoisyEventSubject = PublishSubject<void>();
-  final _routeChangeSubject = PublishSubject<AVAudioSessionRouteChangeReason>();
+  final _routeChangeSubject = PublishSubject<AVAudioSessionRouteChange>();
   final _silenceSecondaryAudioHintSubject =
       PublishSubject<AVAudioSessionSilenceSecondaryAudioHintType>();
   final _mediaServicesWereLostSubject = PublishSubject<void>();
@@ -34,9 +34,11 @@ class AVAudioSession {
           ));
           break;
         case 'onRouteChange':
-          AVAudioSessionRouteChangeReason reason = AVAudioSessionRouteChangeReason.values[args[0]];
-          _routeChangeSubject.add(reason);
-          if (reason == AVAudioSessionRouteChangeReason.oldDeviceUnavailable) {
+          AVAudioSessionRouteChange routeChange = AVAudioSessionRouteChange(
+              reason: AVAudioSessionRouteChangeReason.values[args[0]]);
+          _routeChangeSubject.add(routeChange);
+          if (routeChange.reason ==
+              AVAudioSessionRouteChangeReason.oldDeviceUnavailable) {
             _becomingNoisyEventSubject.add(null);
           }
           break;
@@ -61,7 +63,7 @@ class AVAudioSession {
   Stream<void> get becomingNoisyEventStream =>
       _becomingNoisyEventSubject.stream;
 
-  Stream<AVAudioSessionRouteChangeReason> get routeChangeReasonStream =>
+  Stream<AVAudioSessionRouteChange> get routeChangeStream =>
       _routeChangeSubject.stream;
 
   Stream<AVAudioSessionSilenceSecondaryAudioHintType>
@@ -430,6 +432,13 @@ class AVAudioSessionInterruptionOptions {
       option is AVAudioSessionInterruptionOptions && value == option.value;
 
   int get hashCode => value.hashCode;
+}
+
+class AVAudioSessionRouteChange {
+  final AVAudioSessionRouteChangeReason reason;
+  // add everything else later
+
+  AVAudioSessionRouteChange({@required this.reason});
 }
 
 /// The route change reasons for [AVAudioSession].
