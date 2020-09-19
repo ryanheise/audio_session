@@ -420,7 +420,7 @@ static NSMutableArray<DarwinAudioSession *> *sessions = nil;
 - (void) silenceSecondaryAudio:(NSNotification*)notification {
     NSNumber *silenceSecondaryType = (NSNumber*)[notification.userInfo valueForKey:AVAudioSessionSilenceSecondaryAudioHintTypeKey];
     NSLog(@"silenceSecondaryAudioHint detected");
-    [self invokeMethod:@"onRouteChange" arguments:@[@([silenceSecondaryType integerValue])]];
+    [self invokeMethod:@"onSilenceSecondaryAudioHint" arguments:@[@([silenceSecondaryType integerValue])]];
 }
 
 - (void) mediaServicesLost:(NSNotification*)notification {

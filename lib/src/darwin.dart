@@ -454,7 +454,7 @@ enum AVAudioSessionRouteChangeReason {
 }
 
 /// The interruption types for [AVAudioSessionSilenceSecondaryAudioHint].
-enum AVAudioSessionSilenceSecondaryAudioHintType { began, end }
+enum AVAudioSessionSilenceSecondaryAudioHintType { end, begin }
 
 //class AVAudioSessionRouteDescription {
 //  final List<AVAudioSessionPortDescription> inputs;
