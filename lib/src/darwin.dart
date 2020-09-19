@@ -1,3 +1,4 @@
+import 'package:audio_session/audio_session.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:rxdart/rxdart.dart';
@@ -9,11 +10,12 @@ class AVAudioSession {
 
   final _interruptionNotificationSubject =
       PublishSubject<AVAudioSessionInterruptionNotification>();
-  //final _routeChangeSubject = PublishSubject<AVAudioSessionRouteChangeReason>();
-  //final _silenceSecondaryAudioHintSubject =
-  //    PublishSubject<AVAudioSessionSilenceSecondaryAudioHintType>();
-  //final _mediaServicesWereLostSubject = PublishSubject<void>();
-  //final _mediaServicesWereResetSubject = PublishSubject<void>();
+  final _becomingNoisyEventSubject = PublishSubject<void>();
+  final _routeChangeSubject = PublishSubject<AVAudioSessionRouteChange>();
+  final _silenceSecondaryAudioHintSubject =
+      PublishSubject<AVAudioSessionSilenceSecondaryAudioHintType>();
+  final _mediaServicesWereLostSubject = PublishSubject<void>();
+  final _mediaServicesWereResetSubject = PublishSubject<void>();
 
   factory AVAudioSession() {
     if (_instance == null) _instance = AVAudioSession._();
@@ -31,6 +33,25 @@ class AVAudioSession {
             options: AVAudioSessionInterruptionOptions(args[1]),
           ));
           break;
+        case 'onRouteChange':
+          AVAudioSessionRouteChange routeChange = AVAudioSessionRouteChange(
+              reason: AVAudioSessionRouteChangeReason.values[args[0]]);
+          _routeChangeSubject.add(routeChange);
+          if (routeChange.reason ==
+              AVAudioSessionRouteChangeReason.oldDeviceUnavailable) {
+            _becomingNoisyEventSubject.add(null);
+          }
+          break;
+        case 'onSilenceSecondaryAudioHint':
+          _silenceSecondaryAudioHintSubject
+              .add(AVAudioSessionSilenceSecondaryAudioHintType.values[args[0]]);
+          break;
+        case 'onMediaServicesWereLost':
+          _mediaServicesWereLostSubject.add(null);
+          break;
+        case 'onMediaServicesWereReset':
+          _mediaServicesWereResetSubject.add(null);
+          break;
       }
     });
   }
@@ -38,6 +59,22 @@ class AVAudioSession {
   Stream<AVAudioSessionInterruptionNotification>
       get interruptionNotificationStream =>
           _interruptionNotificationSubject.stream;
+
+  Stream<void> get becomingNoisyEventStream =>
+      _becomingNoisyEventSubject.stream;
+
+  Stream<AVAudioSessionRouteChange> get routeChangeStream =>
+      _routeChangeSubject.stream;
+
+  Stream<AVAudioSessionSilenceSecondaryAudioHintType>
+      get silenceSecondaryAudioHintStream =>
+          _silenceSecondaryAudioHintSubject.stream;
+
+  Stream<void> get mediaServicesWereLostStream =>
+      _mediaServicesWereLostSubject.stream;
+
+  Stream<void> get mediaServicesWereResetStream =>
+      _mediaServicesWereResetSubject.stream;
 
   Future<AVAudioSessionCategory> get category async {
     final int index = await _channel.invokeMethod('getCategory');
@@ -244,13 +281,6 @@ class AVAudioSession {
   //  return true;
   //}
 
-  void close() {
-    _interruptionNotificationSubject.close();
-    //_routeChangeSubject.close();
-    //_silenceSecondaryAudioHintSubject.close();
-    //_mediaServicesWereLostSubject.close();
-    //_mediaServicesWereResetSubject.close();
-  }
 }
 
 /// The categories for [AVAudioSession].
@@ -404,20 +434,28 @@ class AVAudioSessionInterruptionOptions {
   int get hashCode => value.hashCode;
 }
 
-///// The route change reasons for [AVAudioSession].
-//enum AVAudioSessionRouteChangeReason {
-//  unknown,
-//  newDeviceAvailable,
-//  oldDeviceUnavailable,
-//  categoryChange,
-//  override,
-//  wakeFromSleep,
-//  noSuitableRouteForCategory,
-//  routeConfigurationChange,
-//}
-//
-//enum AVAudioSessionSilenceSecondaryAudioHintType { begin, end }
-//
+class AVAudioSessionRouteChange {
+  final AVAudioSessionRouteChangeReason reason;
+  // add everything else later
+
+  AVAudioSessionRouteChange({@required this.reason});
+}
+
+/// The route change reasons for [AVAudioSession].
+enum AVAudioSessionRouteChangeReason {
+  unknown,
+  newDeviceAvailable,
+  oldDeviceUnavailable,
+  categoryChange,
+  override,
+  wakeFromSleep,
+  noSuitableRouteForCategory,
+  routeConfigurationChange,
+}
+
+/// The interruption types for [AVAudioSessionSilenceSecondaryAudioHint].
+enum AVAudioSessionSilenceSecondaryAudioHintType { end, begin }
+
 //class AVAudioSessionRouteDescription {
 //  final List<AVAudioSessionPortDescription> inputs;
 //  final List<AVAudioSessionPortDescription> outputs;

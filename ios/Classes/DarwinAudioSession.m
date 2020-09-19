@@ -26,6 +26,10 @@ static NSMutableArray<DarwinAudioSession *> *sessions = nil;
     }];
     [AVAudioSession sharedInstance];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(audioInterrupt:) name:AVAudioSessionInterruptionNotification object:nil];
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(routeChange:) name:AVAudioSessionRouteChangeNotification object:nil];
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(silenceSecondaryAudio:) name:AVAudioSessionSilenceSecondaryAudioHintNotification object:nil];
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(mediaServicesLost:) name:AVAudioSessionMediaServicesWereLostNotification object:nil];
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(mediaServicesReset:) name:AVAudioSessionMediaServicesWereResetNotification object:nil];
     return self;
 }
 
@@ -405,6 +409,28 @@ static NSMutableArray<DarwinAudioSession *> *sessions = nil;
         default:
             break;
     }
+}
+
+- (void) routeChange:(NSNotification*)notification {
+    NSNumber *routeChangeReasonType = (NSNumber*)[notification.userInfo valueForKey:AVAudioSessionRouteChangeReasonKey];
+    NSLog(@"routeChange detected");
+    [self invokeMethod:@"onRouteChange" arguments:@[@([routeChangeReasonType integerValue])]];
+}
+
+- (void) silenceSecondaryAudio:(NSNotification*)notification {
+    NSNumber *silenceSecondaryType = (NSNumber*)[notification.userInfo valueForKey:AVAudioSessionSilenceSecondaryAudioHintTypeKey];
+    NSLog(@"silenceSecondaryAudioHint detected");
+    [self invokeMethod:@"onSilenceSecondaryAudioHint" arguments:@[@([silenceSecondaryType integerValue])]];
+}
+
+- (void) mediaServicesLost:(NSNotification*)notification {
+    NSLog(@"mediaServicesLost detected");
+    [self invokeMethod:@"onMediaServicesWereLost" arguments:nil];
+}
+
+- (void) mediaServicesReset:(NSNotification*)notification {
+    NSLog(@"mediaServicesReset detected");
+    [self invokeMethod:@"onMediaServicesWereReset" arguments:nil];
 }
 
 - (void) invokeMethod:(NSString *)method arguments:(id _Nullable)arguments {

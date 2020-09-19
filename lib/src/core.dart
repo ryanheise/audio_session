@@ -59,6 +59,8 @@ class AudioSession {
           break;
       }
     });
+    _avAudioSession?.becomingNoisyEventStream
+        ?.listen((event) => _becomingNoisyEventSubject.add(event));
     _androidAudioManager?.becomingNoisyEventStream
         ?.listen((event) => _becomingNoisyEventSubject.add(event));
     _channel.setMethodCallHandler((MethodCall call) async {
