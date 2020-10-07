@@ -59,10 +59,13 @@ class AudioSession {
           break;
       }
     });
-    _avAudioSession?.becomingNoisyEventStream
-        ?.listen((event) => _becomingNoisyEventSubject.add(event));
+    _avAudioSession?.routeChangeStream
+        ?.where((routeChange) =>
+            routeChange.reason ==
+            AVAudioSessionRouteChangeReason.oldDeviceUnavailable)
+        ?.listen((routeChange) => _becomingNoisyEventSubject.add(null));
     _androidAudioManager?.becomingNoisyEventStream
-        ?.listen((event) => _becomingNoisyEventSubject.add(event));
+        ?.listen((event) => _becomingNoisyEventSubject.add(null));
     _channel.setMethodCallHandler((MethodCall call) async {
       final List args = call.arguments;
       switch (call.method) {

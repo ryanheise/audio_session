@@ -10,7 +10,6 @@ class AVAudioSession {
 
   final _interruptionNotificationSubject =
       PublishSubject<AVAudioSessionInterruptionNotification>();
-  final _becomingNoisyEventSubject = PublishSubject<void>();
   final _routeChangeSubject = PublishSubject<AVAudioSessionRouteChange>();
   final _silenceSecondaryAudioHintSubject =
       PublishSubject<AVAudioSessionSilenceSecondaryAudioHintType>();
@@ -37,10 +36,6 @@ class AVAudioSession {
           AVAudioSessionRouteChange routeChange = AVAudioSessionRouteChange(
               reason: AVAudioSessionRouteChangeReason.values[args[0]]);
           _routeChangeSubject.add(routeChange);
-          if (routeChange.reason ==
-              AVAudioSessionRouteChangeReason.oldDeviceUnavailable) {
-            _becomingNoisyEventSubject.add(null);
-          }
           break;
         case 'onSilenceSecondaryAudioHint':
           _silenceSecondaryAudioHintSubject
@@ -59,9 +54,6 @@ class AVAudioSession {
   Stream<AVAudioSessionInterruptionNotification>
       get interruptionNotificationStream =>
           _interruptionNotificationSubject.stream;
-
-  Stream<void> get becomingNoisyEventStream =>
-      _becomingNoisyEventSubject.stream;
 
   Stream<AVAudioSessionRouteChange> get routeChangeStream =>
       _routeChangeSubject.stream;
