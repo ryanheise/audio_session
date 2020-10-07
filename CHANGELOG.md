@@ -1,6 +1,6 @@
 ## 0.0.8
 
-* Support becomingNoisyEventStream on iOS.
+* Support becomingNoisyEventStream on iOS (@snaeji).
 
 ## 0.0.7
 
