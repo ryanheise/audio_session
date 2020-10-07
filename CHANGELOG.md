@@ -1,3 +1,7 @@
+## 0.0.8
+
+* Support becomingNoisyEventStream on iOS.
+
 ## 0.0.7
 
 * Fix bug in androidWillPauseWhenDucked.
