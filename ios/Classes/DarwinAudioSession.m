@@ -1,8 +1,7 @@
 #import "DarwinAudioSession.h"
 #import <AVFoundation/AVFoundation.h>
 
-// TODO disable for macOS.
-static NSMutableArray<DarwinAudioSession *> *sessions = nil;
+static NSHashTable<DarwinAudioSession *> *sessions = nil;
 
 @implementation DarwinAudioSession {
     NSObject<FlutterPluginRegistrar>* _registrar;
@@ -12,8 +11,9 @@ static NSMutableArray<DarwinAudioSession *> *sessions = nil;
 - (instancetype)initWithRegistrar:(NSObject<FlutterPluginRegistrar> *)registrar {
     self = [super init];
     NSAssert(self, @"super init cannot be nil");
-    if (!sessions) {
-        sessions = [[NSMutableArray alloc] init];
+    BOOL firstInstance = !sessions;
+    if (firstInstance) {
+        sessions = [NSHashTable weakObjectsHashTable];
     }
     [sessions addObject:self];
     _registrar = registrar;
@@ -24,12 +24,15 @@ static NSMutableArray<DarwinAudioSession *> *sessions = nil;
     [_channel setMethodCallHandler:^(FlutterMethodCall* call, FlutterResult result) {
         [weakSelf handleMethodCall:call result:result];
     }];
-    [AVAudioSession sharedInstance];
-    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(audioInterrupt:) name:AVAudioSessionInterruptionNotification object:nil];
-    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(routeChange:) name:AVAudioSessionRouteChangeNotification object:nil];
-    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(silenceSecondaryAudio:) name:AVAudioSessionSilenceSecondaryAudioHintNotification object:nil];
-    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(mediaServicesLost:) name:AVAudioSessionMediaServicesWereLostNotification object:nil];
-    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(mediaServicesReset:) name:AVAudioSessionMediaServicesWereResetNotification object:nil];
+    if (firstInstance) {
+        NSLog(@"adding notification observers");
+        [AVAudioSession sharedInstance];
+        [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(audioInterrupt:) name:AVAudioSessionInterruptionNotification object:nil];
+        [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(routeChange:) name:AVAudioSessionRouteChangeNotification object:nil];
+        [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(silenceSecondaryAudio:) name:AVAudioSessionSilenceSecondaryAudioHintNotification object:nil];
+        [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(mediaServicesLost:) name:AVAudioSessionMediaServicesWereLostNotification object:nil];
+        [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(mediaServicesReset:) name:AVAudioSessionMediaServicesWereResetNotification object:nil];
+    }
     return self;
 }
 
@@ -434,14 +437,16 @@ static NSMutableArray<DarwinAudioSession *> *sessions = nil;
 }
 
 - (void) invokeMethod:(NSString *)method arguments:(id _Nullable)arguments {
-    for (int i = 0; i < sessions.count; i++) {
-        [sessions[i].channel invokeMethod:method arguments:arguments];
+    for (DarwinAudioSession *session in sessions) {
+        [session.channel invokeMethod:method arguments:arguments];
     }
 }
 
 - (void) dealloc {
-    [[NSNotificationCenter defaultCenter] removeObserver:self];
-    [sessions removeObject:self];
+    if (sessions.allObjects.count == 0) {
+        NSLog(@"removing notification observers");
+        [[NSNotificationCenter defaultCenter] removeObserver:self];
+    }
 }
 
 @end
