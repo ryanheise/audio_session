@@ -1,3 +1,8 @@
+## 0.0.9
+
+* ARC fixes on iOS.
+* Register notification observers once for all FlutterEngines on iOS.
+
 ## 0.0.8
 
 * Support becomingNoisyEventStream on iOS (@snaeji).

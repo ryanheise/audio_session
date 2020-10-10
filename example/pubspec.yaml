@@ -23,6 +23,12 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
 
+# When running the local version of audio_session in the parent directory, we
+# need to override other plugins to also use this local version.
+dependency_overrides:
+  audio_session:
+    path: ..
+
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
 
