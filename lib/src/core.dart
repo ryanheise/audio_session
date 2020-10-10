@@ -46,8 +46,10 @@ class AudioSession {
     _avAudioSession?.interruptionNotificationStream?.listen((notification) {
       switch (notification.type) {
         case AVAudioSessionInterruptionType.began:
-          _interruptionEventSubject
-              .add(AudioInterruptionEvent(true, AudioInterruptionType.unknown));
+          if (notification.wasSuspended != true) {
+            _interruptionEventSubject.add(
+                AudioInterruptionEvent(true, AudioInterruptionType.unknown));
+          }
           break;
         case AVAudioSessionInterruptionType.ended:
           _interruptionEventSubject.add(AudioInterruptionEvent(

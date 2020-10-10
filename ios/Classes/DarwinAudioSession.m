@@ -393,19 +393,23 @@ static NSHashTable<DarwinAudioSession *> *sessions = nil;
 
 - (void) audioInterrupt:(NSNotification*)notification {
     NSNumber *interruptionType = (NSNumber*)[notification.userInfo valueForKey:AVAudioSessionInterruptionTypeKey];
+
+    NSNumber *wasSuspended = [NSNull null];
+    if (@available(iOS 10.3, *)) {
+        wasSuspended = [notification.userInfo valueForKey:AVAudioSessionInterruptionWasSuspendedKey];
+    }
+
     NSLog(@"audioInterrupt");
     switch ([interruptionType integerValue]) {
-        case AVAudioSessionInterruptionTypeBegan:
-        {
-            [self invokeMethod:@"onInterruptionEvent" arguments:@[@(0), @(0)]];
+        case AVAudioSessionInterruptionTypeBegan: {
+            [self invokeMethod:@"onInterruptionEvent" arguments:@[@(0), @(0), wasSuspended]];
             break;
         }
-        case AVAudioSessionInterruptionTypeEnded:
-        {
+        case AVAudioSessionInterruptionTypeEnded: {
             if ([(NSNumber*)[notification.userInfo valueForKey:AVAudioSessionInterruptionOptionKey] intValue] == AVAudioSessionInterruptionOptionShouldResume) {
-                [self invokeMethod:@"onInterruptionEvent" arguments:@[@(1), @(1)]];
+                [self invokeMethod:@"onInterruptionEvent" arguments:@[@(1), @(1), wasSuspended]];
             } else {
-                [self invokeMethod:@"onInterruptionEvent" arguments:@[@(1), @(0)]];
+                [self invokeMethod:@"onInterruptionEvent" arguments:@[@(1), @(0), wasSuspended]];
             }
             break;
         }

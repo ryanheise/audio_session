@@ -30,6 +30,7 @@ class AVAudioSession {
               .add(AVAudioSessionInterruptionNotification(
             type: AVAudioSessionInterruptionType.values[args[0]],
             options: AVAudioSessionInterruptionOptions(args[1]),
+            wasSuspended: args[2],
           ));
           break;
         case 'onRouteChange':
@@ -388,9 +389,13 @@ class AVAudioSessionInterruptionNotification {
   final AVAudioSessionInterruptionType type;
   final AVAudioSessionInterruptionOptions options;
 
+  /// This will be `null` prior to iOS 10.3.
+  final bool wasSuspended;
+
   AVAudioSessionInterruptionNotification({
     @required this.type,
     @required this.options,
+    @required this.wasSuspended,
   });
 }
 
