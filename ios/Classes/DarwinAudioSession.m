@@ -394,9 +394,12 @@ static NSHashTable<DarwinAudioSession *> *sessions = nil;
 - (void) audioInterrupt:(NSNotification*)notification {
     NSNumber *interruptionType = (NSNumber*)[notification.userInfo valueForKey:AVAudioSessionInterruptionTypeKey];
 
-    NSNumber *wasSuspended = [NSNull null];
+    NSNumber *wasSuspended = nil;
     if (@available(iOS 10.3, *)) {
         wasSuspended = [notification.userInfo valueForKey:AVAudioSessionInterruptionWasSuspendedKey];
+    }
+    if (wasSuspended == nil) {
+        wasSuspended = [NSNull null];
     }
 
     NSLog(@"audioInterrupt");
