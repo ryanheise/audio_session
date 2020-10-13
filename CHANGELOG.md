@@ -2,6 +2,7 @@
 
 * ARC fixes on iOS.
 * Register notification observers once for all FlutterEngines on iOS.
+* Add AVAudioSessionInterruptionNotification.wasSuspended.
 
 ## 0.0.8
 
