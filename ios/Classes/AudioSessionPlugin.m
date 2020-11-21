@@ -13,7 +13,8 @@ static NSHashTable<AudioSessionPlugin *> *plugins = nil;
     if (!plugins) {
         plugins = [NSHashTable weakObjectsHashTable];
     }
-    [[AudioSessionPlugin alloc] initWithRegistrar:registrar];
+    AudioSessionPlugin *plugin = [[AudioSessionPlugin alloc] initWithRegistrar:registrar];
+    [plugins addObject:plugin];
 }
 
 - (instancetype)initWithRegistrar:(NSObject<FlutterPluginRegistrar> *)registrar {
@@ -23,7 +24,6 @@ static NSHashTable<AudioSessionPlugin *> *plugins = nil;
         methodChannelWithName:@"com.ryanheise.audio_session"
               binaryMessenger:[registrar messenger]];
     [registrar addMethodCallDelegate:self channel:_channel];
-    [plugins addObject:self];
 
     _darwinAudioSession = [[DarwinAudioSession alloc] initWithRegistrar:registrar];
     return self;

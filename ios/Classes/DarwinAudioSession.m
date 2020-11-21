@@ -353,7 +353,7 @@ static NSHashTable<DarwinAudioSession *> *sessions = nil;
         if (policy == AVAudioSessionRouteSharingPolicyDefault) return @(0);
         else return @(3);
     } else {
-        return [NSNull null];
+        return (id)[NSNull null];
     }
 }
 
@@ -399,7 +399,7 @@ static NSHashTable<DarwinAudioSession *> *sessions = nil;
         wasSuspended = [notification.userInfo valueForKey:AVAudioSessionInterruptionWasSuspendedKey];
     }
     if (wasSuspended == nil) {
-        wasSuspended = [NSNull null];
+        wasSuspended = (id)[NSNull null];
     }
 
     NSLog(@"audioInterrupt");
