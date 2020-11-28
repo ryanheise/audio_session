@@ -1,18 +1,18 @@
-import 'package:flutter/material.dart';
+import 'dart:async';
+
 import 'package:flutter/services.dart';
 import 'package:rxdart/rxdart.dart';
 
 class AndroidAudioManager {
   static const MethodChannel _channel =
       const MethodChannel('com.ryanheise.android_audio_manager');
-  static AndroidAudioManager _instance;
+  static AndroidAudioManager? _instance;
 
   final _becomingNoisyEventSubject = PublishSubject<void>();
-  AndroidOnAudioFocusChanged _onAudioFocusChanged;
+  AndroidOnAudioFocusChanged? _onAudioFocusChanged;
 
   factory AndroidAudioManager() {
-    if (_instance == null) _instance = AndroidAudioManager._();
-    return _instance;
+    return _instance ??= AndroidAudioManager._();
   }
 
   AndroidAudioManager._() {
@@ -21,7 +21,7 @@ class AndroidAudioManager {
       switch (call.method) {
         case 'onAudioFocusChanged':
           if (_onAudioFocusChanged != null) {
-            _onAudioFocusChanged(AndroidAudioFocus.values[args[0]]);
+            _onAudioFocusChanged!(AndroidAudioFocus.values[args[0]]!);
           }
           break;
         case 'onBecomingNoisy':
@@ -36,12 +36,14 @@ class AndroidAudioManager {
 
   Future<bool> requestAudioFocus(AndroidAudioFocusRequest focusRequest) async {
     _onAudioFocusChanged = focusRequest.onAudioFocusChanged;
-    return await _channel
-        .invokeMethod('requestAudioFocus', [focusRequest.toJson()]);
+    return await (_channel.invokeMethod<bool>(
+        'requestAudioFocus', [focusRequest.toJson()]) as FutureOr<bool>);
   }
 
-  Future<bool> abandonAudioFocus() =>
-      _channel.invokeMethod('abandonAudioFocus');
+  Future<bool> abandonAudioFocus() async {
+    return await (_channel.invokeMethod<bool>('abandonAudioFocus')
+        as FutureOr<bool>);
+  }
 
   void close() {
     _becomingNoisyEventSubject.close();
@@ -69,7 +71,7 @@ class AndroidAudioAttributes {
       : this(
           contentType: AndroidAudioContentType.values[data['contentType']],
           flags: AndroidAudioFlags(data['flags']),
-          usage: AndroidAudioUsage.values[data['usage']],
+          usage: AndroidAudioUsage.values[data['usage']]!,
         );
 
   Map toJson() => {
@@ -183,12 +185,12 @@ class AndroidAudioFocusGainType {
 
 class AndroidAudioFocusRequest {
   final AndroidAudioFocusGainType gainType;
-  final AndroidAudioAttributes audioAttributes;
-  final bool willPauseWhenDucked;
-  final AndroidOnAudioFocusChanged onAudioFocusChanged;
+  final AndroidAudioAttributes? audioAttributes;
+  final bool? willPauseWhenDucked;
+  final AndroidOnAudioFocusChanged? onAudioFocusChanged;
 
   const AndroidAudioFocusRequest({
-    @required this.gainType,
+    required this.gainType,
     this.audioAttributes,
     this.willPauseWhenDucked,
     this.onAudioFocusChanged,
@@ -196,7 +198,7 @@ class AndroidAudioFocusRequest {
 
   Map toJson() => {
         'gainType': gainType.index,
-        'audioAttribute': audioAttributes.toJson(),
+        'audioAttribute': audioAttributes?.toJson(),
         'willPauseWhenDucked': willPauseWhenDucked,
       };
 }

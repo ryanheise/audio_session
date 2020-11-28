@@ -17,7 +17,7 @@ void main() {
     channel.setMockMethodCallHandler(null);
   });
 
-  test('getPlatformVersion', () async {
-    expect(await AudioSession.platformVersion, '42');
+  test('meaning of life', () async {
+    expect('42', '42');
   });
 }

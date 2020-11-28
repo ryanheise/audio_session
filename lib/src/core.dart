@@ -19,25 +19,28 @@ import 'darwin.dart';
 class AudioSession {
   static const MethodChannel _channel =
       const MethodChannel('com.ryanheise.audio_session');
-  static AudioSession _instance;
+  static AudioSession? _instance;
 
   /// The singleton instance across all Flutter engines.
   static Future<AudioSession> get instance async {
     if (_instance == null) {
       _instance = AudioSession._();
-      Map data = await _channel.invokeMethod('getConfiguration');
+      // TODO: Use this code without the '?' once a Dart bug is fixed.
+      // (similar instances occur elsewhere)
+      //Map? data = await _channel.invokeMethod<Map>('getConfiguration');
+      Map? data = await _channel.invokeMethod<Map?>('getConfiguration');
       if (data != null) {
-        _instance._configuration = AudioSessionConfiguration.fromJson(data);
+        _instance!._configuration = AudioSessionConfiguration.fromJson(data);
       }
     }
-    return _instance;
+    return _instance!;
   }
 
-  AndroidAudioManager _androidAudioManager =
+  AndroidAudioManager? _androidAudioManager =
       !kIsWeb && Platform.isAndroid ? AndroidAudioManager() : null;
-  AVAudioSession _avAudioSession =
+  AVAudioSession? _avAudioSession =
       !kIsWeb && Platform.isIOS ? AVAudioSession() : null;
-  AudioSessionConfiguration _configuration;
+  AudioSessionConfiguration? _configuration;
   final _configurationSubject = BehaviorSubject<AudioSessionConfiguration>();
   final _interruptionEventSubject = PublishSubject<AudioInterruptionEvent>();
   final _becomingNoisyEventSubject = PublishSubject<void>();
@@ -62,25 +65,25 @@ class AudioSession {
       }
     });
     _avAudioSession?.routeChangeStream
-        ?.where((routeChange) =>
+        .where((routeChange) =>
             routeChange.reason ==
             AVAudioSessionRouteChangeReason.oldDeviceUnavailable)
-        ?.listen((routeChange) => _becomingNoisyEventSubject.add(null));
+        .listen((routeChange) => _becomingNoisyEventSubject.add(null));
     _androidAudioManager?.becomingNoisyEventStream
-        ?.listen((event) => _becomingNoisyEventSubject.add(null));
+        .listen((event) => _becomingNoisyEventSubject.add(null));
     _channel.setMethodCallHandler((MethodCall call) async {
-      final List args = call.arguments;
+      final List? args = call.arguments;
       switch (call.method) {
         case 'onConfigurationChanged':
-          _configuration = AudioSessionConfiguration.fromJson(args[0]);
-          _configurationSubject.add(_configuration);
+          _configurationSubject.add(
+              _configuration = AudioSessionConfiguration.fromJson(args![0]));
           break;
       }
     });
   }
 
   /// The current configuration.
-  AudioSessionConfiguration get configuration => _configuration;
+  AudioSessionConfiguration? get configuration => _configuration;
 
   /// A stream broadcasting the current configuration.
   Stream<AudioSessionConfiguration> get configurationStream =>
@@ -90,12 +93,12 @@ class AudioSession {
   bool get isConfigured => _configuration != null;
 
   /// The configured [AndroidAudioAttributes].
-  AndroidAudioAttributes get androidAudioAttributes =>
-      _configuration.androidAudioAttributes;
+  AndroidAudioAttributes? get androidAudioAttributes =>
+      _configuration?.androidAudioAttributes;
 
   /// The configured [AndroidAudioFocusGainType].
-  AndroidAudioFocusGainType get androidAudioFocusGainType =>
-      _configuration.androidAudioFocusGainType;
+  AndroidAudioFocusGainType? get androidAudioFocusGainType =>
+      _configuration?.androidAudioFocusGainType;
 
   /// A stream of [AudioInterruptionEvent]s.
   Stream<AudioInterruptionEvent> get interruptionEventStream =>
@@ -119,7 +122,7 @@ class AudioSession {
       configuration.avAudioSessionRouteSharingPolicy,
     );
     _configuration = configuration;
-    await _channel.invokeMethod('setConfiguration', [_configuration.toJson()]);
+    await _channel.invokeMethod('setConfiguration', [configuration.toJson()]);
   }
 
   /// Activates or deactivates this audio session. Typically an audio plugin
@@ -131,34 +134,35 @@ class AudioSession {
   /// speficied, they will override the configuration.
   Future<bool> setActive(
     bool active, {
-    AVAudioSessionSetActiveOptions avAudioSessionSetActiveOptions,
-    AndroidAudioFocusGainType androidAudioFocusGainType,
-    AndroidAudioAttributes androidAudioAttributes,
-    bool androidWillPauseWhenDucked,
+    AVAudioSessionSetActiveOptions? avAudioSessionSetActiveOptions,
+    AndroidAudioFocusGainType? androidAudioFocusGainType,
+    AndroidAudioAttributes? androidAudioAttributes,
+    bool? androidWillPauseWhenDucked,
     AudioSessionConfiguration fallbackConfiguration =
         const AudioSessionConfiguration.music(),
   }) async {
+    final configuration = _configuration ?? fallbackConfiguration;
     if (!isConfigured) {
       await configure(fallbackConfiguration);
     }
     if (!kIsWeb && Platform.isIOS) {
-      return await _avAudioSession.setActive(active,
+      return await _avAudioSession!.setActive(active,
           avOptions: avAudioSessionSetActiveOptions ??
-              _configuration.avAudioSessionSetActiveOptions);
+              configuration.avAudioSessionSetActiveOptions);
     } else if (!kIsWeb && Platform.isAndroid) {
       if (active) {
         // Activate
         final pauseWhenDucked =
-            _configuration.androidWillPauseWhenDucked ?? false;
+            configuration.androidWillPauseWhenDucked ?? false;
         var ducked = false;
-        final success = await _androidAudioManager
+        final success = await _androidAudioManager!
             .requestAudioFocus(AndroidAudioFocusRequest(
           gainType: androidAudioFocusGainType ??
-              _configuration.androidAudioFocusGainType,
+              configuration.androidAudioFocusGainType,
           audioAttributes:
-              androidAudioAttributes ?? _configuration.androidAudioAttributes,
+              androidAudioAttributes ?? configuration.androidAudioAttributes,
           willPauseWhenDucked: androidWillPauseWhenDucked ??
-              _configuration.androidWillPauseWhenDucked,
+              configuration.androidWillPauseWhenDucked,
           onAudioFocusChanged: (focus) {
             print("core onAudioFocusChanged");
             switch (focus) {
@@ -196,7 +200,7 @@ class AudioSession {
         return success;
       } else {
         // Deactivate
-        final success = await _androidAudioManager.abandonAudioFocus();
+        final success = await _androidAudioManager!.abandonAudioFocus();
         return success;
       }
     }
@@ -214,14 +218,14 @@ class AudioSession {
 ///
 /// You can suggest additional recipes via the GitHub issues page.
 class AudioSessionConfiguration {
-  final AVAudioSessionCategory avAudioSessionCategory;
-  final AVAudioSessionCategoryOptions avAudioSessionCategoryOptions;
-  final AVAudioSessionMode avAudioSessionMode;
-  final AVAudioSessionRouteSharingPolicy avAudioSessionRouteSharingPolicy;
-  final AVAudioSessionSetActiveOptions avAudioSessionSetActiveOptions;
-  final AndroidAudioAttributes androidAudioAttributes;
+  final AVAudioSessionCategory? avAudioSessionCategory;
+  final AVAudioSessionCategoryOptions? avAudioSessionCategoryOptions;
+  final AVAudioSessionMode? avAudioSessionMode;
+  final AVAudioSessionRouteSharingPolicy? avAudioSessionRouteSharingPolicy;
+  final AVAudioSessionSetActiveOptions? avAudioSessionSetActiveOptions;
+  final AndroidAudioAttributes? androidAudioAttributes;
   final AndroidAudioFocusGainType androidAudioFocusGainType;
-  final bool androidWillPauseWhenDucked;
+  final bool? androidWillPauseWhenDucked;
 
   /// Creates an audio session configuration from scratch.
   ///
@@ -245,9 +249,9 @@ class AudioSessionConfiguration {
     this.avAudioSessionRouteSharingPolicy,
     this.avAudioSessionSetActiveOptions,
     this.androidAudioAttributes,
-    this.androidAudioFocusGainType,
+    this.androidAudioFocusGainType = AndroidAudioFocusGainType.gain,
     this.androidWillPauseWhenDucked,
-  });
+  }) : assert(androidAudioFocusGainType != null);
 
   AudioSessionConfiguration.fromJson(Map data)
       : this(
@@ -275,10 +279,8 @@ class AudioSessionConfiguration {
           androidAudioAttributes: data['androidAudioAttributes'] == null
               ? null
               : AndroidAudioAttributes.fromJson(data['androidAudioAttributes']),
-          androidAudioFocusGainType: data['androidAudioFocusGainType'] == null
-              ? null
-              : AndroidAudioFocusGainType
-                  .values[data['androidAudioFocusGainType']],
+          androidAudioFocusGainType: AndroidAudioFocusGainType
+              .values[data['androidAudioFocusGainType']]!,
           androidWillPauseWhenDucked: data['androidWillPauseWhenDucked'],
         );
 
@@ -311,14 +313,14 @@ class AudioSessionConfiguration {
   /// Creates a copy of this configuration with the given fields replaced by
   /// new values.
   AudioSessionConfiguration copyWith({
-    AVAudioSessionCategory avAudioSessionCategory,
-    AVAudioSessionCategoryOptions avAudioSessionCategoryOptions,
-    AVAudioSessionMode avAudioSessionMode,
-    AVAudioSessionRouteSharingPolicy avAudioSessionRouteSharingPolicy,
-    AVAudioSessionSetActiveOptions avAudioSessionSetActiveOptions,
-    AndroidAudioAttributes androidAudioAttributes,
-    AndroidAudioFocusGainType androidAudioFocusGainType,
-    bool androidWillPauseWhenDucked,
+    AVAudioSessionCategory? avAudioSessionCategory,
+    AVAudioSessionCategoryOptions? avAudioSessionCategoryOptions,
+    AVAudioSessionMode? avAudioSessionMode,
+    AVAudioSessionRouteSharingPolicy? avAudioSessionRouteSharingPolicy,
+    AVAudioSessionSetActiveOptions? avAudioSessionSetActiveOptions,
+    AndroidAudioAttributes? androidAudioAttributes,
+    AndroidAudioFocusGainType? androidAudioFocusGainType,
+    bool? androidWillPauseWhenDucked,
   }) =>
       AudioSessionConfiguration(
         avAudioSessionCategory:
@@ -347,7 +349,7 @@ class AudioSessionConfiguration {
             avAudioSessionRouteSharingPolicy?.index,
         'avAudioSessionSetActiveOptions': avAudioSessionSetActiveOptions?.value,
         'androidAudioAttributes': androidAudioAttributes?.toJson(),
-        'androidAudioFocusGainType': androidAudioFocusGainType?.index,
+        'androidAudioFocusGainType': androidAudioFocusGainType.index,
         'androidWillPauseWhenDucked': androidWillPauseWhenDucked,
       };
 }

@@ -1,3 +1,7 @@
+## 0.1.0-nullsafety.0
+
+* Support null safety.
+
 ## 0.0.9
 
 * ARC fixes on iOS.
