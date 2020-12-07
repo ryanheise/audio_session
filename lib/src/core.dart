@@ -46,7 +46,7 @@ class AudioSession {
   final _becomingNoisyEventSubject = PublishSubject<void>();
 
   AudioSession._() {
-    _avAudioSession?.interruptionNotificationStream?.listen((notification) {
+    _avAudioSession?.interruptionNotificationStream.listen((notification) {
       switch (notification.type) {
         case AVAudioSessionInterruptionType.began:
           if (notification.wasSuspended != true) {
@@ -114,7 +114,6 @@ class AudioSession {
   /// audio. However, you may also call this method afterwards to change the
   /// current configuration at any time.
   Future<void> configure(AudioSessionConfiguration configuration) async {
-    assert(configuration != null);
     await _avAudioSession?.setCategory(
       configuration.avAudioSessionCategory,
       configuration.avAudioSessionCategoryOptions,
@@ -251,7 +250,7 @@ class AudioSessionConfiguration {
     this.androidAudioAttributes,
     this.androidAudioFocusGainType = AndroidAudioFocusGainType.gain,
     this.androidWillPauseWhenDucked,
-  }) : assert(androidAudioFocusGainType != null);
+  });
 
   AudioSessionConfiguration.fromJson(Map data)
       : this(

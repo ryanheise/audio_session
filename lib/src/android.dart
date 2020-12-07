@@ -194,7 +194,7 @@ class AndroidAudioFocusRequest {
     this.audioAttributes,
     this.willPauseWhenDucked,
     this.onAudioFocusChanged,
-  }) : assert(gainType != null);
+  });
 
   Map toJson() => {
         'gainType': gainType.index,
