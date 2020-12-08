@@ -35,6 +35,7 @@ public class AudioSessionPlugin implements FlutterPlugin, MethodCallHandler {
 		channel.setMethodCallHandler(null);
         channel = null;
 		androidAudioManager.dispose();
+        androidAudioManager = null;
 		instances.remove(this);
 	}
 

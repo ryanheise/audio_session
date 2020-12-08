@@ -131,6 +131,10 @@ public class AndroidAudioManager implements MethodCallHandler {
 			abandonAudioFocus();
 		}
 		channel.setMethodCallHandler(null);
+        channel = null;
+        applicationContext = null;
+        messenger = null;
+        audioManager = null;
 	}
 
 	private void invokeMethod(String method, Object... args) {
