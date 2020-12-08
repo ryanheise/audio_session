@@ -33,6 +33,7 @@ public class AudioSessionPlugin implements FlutterPlugin, MethodCallHandler {
 	@Override
 	public void onDetachedFromEngine(@NonNull FlutterPluginBinding binding) {
 		channel.setMethodCallHandler(null);
+        channel = null;
 		androidAudioManager.dispose();
 		instances.remove(this);
 	}

@@ -35,7 +35,6 @@ public class AndroidAudioManager implements MethodCallHandler {
 		channel.setMethodCallHandler(this);
 		audioManager = (AudioManager)applicationContext.getSystemService(Context.AUDIO_SERVICE);
 		instances.add(this);
-		registerNoisyReceiver();
 	}
 
 	@Override
@@ -75,10 +74,15 @@ public class AndroidAudioManager implements MethodCallHandler {
 		}
 		audioFocusRequest = builder.build();
 		int status = AudioManagerCompat.requestAudioFocus(audioManager, audioFocusRequest);
-		return status == AudioManager.AUDIOFOCUS_REQUEST_GRANTED;
+		boolean success = status == AudioManager.AUDIOFOCUS_REQUEST_GRANTED;
+        if (success) {
+            registerNoisyReceiver();
+        }
+        return success;
 	}
 
 	private boolean abandonAudioFocus() {
+        unregisterNoisyReceiver();
 		if (audioFocusRequest == null) {
 			return true;
 		} else {
@@ -125,7 +129,6 @@ public class AndroidAudioManager implements MethodCallHandler {
 		instances.remove(this);
 		if (instances.size() == 0) {
 			abandonAudioFocus();
-			unregisterNoisyReceiver();
 		}
 		channel.setMethodCallHandler(null);
 	}
