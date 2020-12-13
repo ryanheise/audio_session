@@ -28,8 +28,6 @@ dependency_overrides:
   # need to override other plugins to also use this local version.
   audio_session:
     path: ..
-  # Temporary override since just_audio doesn't support rxdart 0.25.0 yet.
-  rxdart: ^0.25.0
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
