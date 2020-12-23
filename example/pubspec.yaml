@@ -11,7 +11,7 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  just_audio: ^0.5.2
+  just_audio: ^0.6.2
   audio_session:
     path: ../
 

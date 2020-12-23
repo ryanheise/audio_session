@@ -1,3 +1,9 @@
+## 0.0.10
+
+* Support rxdart 0.25.0.
+* Fix leaked context on Android.
+* Remove compilex warnings on iOS.
+
 ## 0.0.9
 
 * ARC fixes on iOS.
