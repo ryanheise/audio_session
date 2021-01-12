@@ -1,3 +1,7 @@
+## 0.0.11
+
+* Fix Android NPE if focus lost after dispose.
+
 ## 0.0.10
 
 * Support rxdart 0.25.0.
