@@ -1,3 +1,7 @@
+## 0.1.0-nullsafety.2
+
+* Merge features and bug fixes from 0.0.10 and 0.0.11.
+
 ## 0.1.0-nullsafety.1
 
 * Fix some static analysis errors.
