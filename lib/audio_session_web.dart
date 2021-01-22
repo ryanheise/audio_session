@@ -16,7 +16,7 @@ class AudioSessionWeb {
       : _channel = MethodChannel(
           'com.ryanheise.audio_session',
           const StandardMethodCodec(),
-          registrar.messenger,
+          registrar,
         ) {
     _channel.setMethodCallHandler(handleMethodCall);
   }

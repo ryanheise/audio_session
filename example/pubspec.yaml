@@ -13,7 +13,7 @@ dependencies:
     sdk: flutter
   # Bootstrapping problem: The null-safety version of just_audio can't exist
   # until the null-safety version of THIS plugin is published.
-  # just_audio: ^0.5.2
+  # just_audio: ^0.6.2
   audio_session:
     path: ../
 
@@ -25,9 +25,9 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
 
-# When running the local version of audio_session in the parent directory, we
-# need to override other plugins to also use this local version.
 dependency_overrides:
+  # When running the local version of audio_session in the parent directory, we
+  # need to override other plugins to also use this local version.
   audio_session:
     path: ..
 
