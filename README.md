@@ -33,7 +33,7 @@ await session.configure(AudioSessionConfiguration(
   avAudioSessionCategoryOptions: AVAudioSessionCategoryOptions.allowBluetooth,
   avAudioSessionMode: AVAudioSessionMode.spokenAudio,
   avAudioSessionRouteSharingPolicy: AVAudioSessionRouteSharingPolicy.defaultPolicy,
-  avSetActiveOptions: AVAudioSessionSetActiveOptions.none,
+  avAudioSessionSetActiveOptions: AVAudioSessionSetActiveOptions.none,
   androidAudioAttributes: const AndroidAudioAttributes(
     contentType: AndroidAudioContentType.speech,
     flags: AndroidAudioFlags.none,
