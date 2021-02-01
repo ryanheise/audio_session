@@ -74,8 +74,7 @@ class AVAudioSession {
       _mediaServicesWereResetSubject.stream;
 
   Future<AVAudioSessionCategory> get category async {
-    final index =
-        await (_channel.invokeMethod<int>('getCategory') as FutureOr<int>);
+    final index = (await (_channel.invokeMethod<int>('getCategory')))!;
     return AVAudioSessionCategory.values[index];
   }
 
@@ -95,14 +94,12 @@ class AVAudioSession {
           .toList();
 
   Future<AVAudioSessionCategoryOptions> get categoryOptions async {
-    final value = await (_channel.invokeMethod<int>('getCategoryOptions')
-        as FutureOr<int>);
+    final value = (await (_channel.invokeMethod<int>('getCategoryOptions')))!;
     return AVAudioSessionCategoryOptions(value);
   }
 
   Future<AVAudioSessionMode> get mode async {
-    final index =
-        await (_channel.invokeMethod<int>('getMode') as FutureOr<int>);
+    final index = (await (_channel.invokeMethod<int>('getMode')))!;
     return AVAudioSessionMode.values[index];
   }
 
@@ -125,29 +122,27 @@ class AVAudioSession {
   }
 
   Future<bool> setActive(bool active,
-          {AVAudioSessionSetActiveOptions? avOptions}) =>
-      _channel.invokeMethod<bool>('setActive', [active, avOptions?.value])
-          as Future<bool>;
+          {AVAudioSessionSetActiveOptions? avOptions}) async =>
+      (await _channel
+          .invokeMethod<bool>('setActive', [active, avOptions?.value]))!;
 
   Future<AVAudioSessionRecordPermission> get recordPermission async {
-    final index = await (_channel.invokeMethod<int>('getRecordPermission')
-        as FutureOr<int>);
+    final index = (await (_channel.invokeMethod<int>('getRecordPermission')))!;
     return AVAudioSessionRecordPermission.values[index];
   }
 
-  Future<bool> requestRecordPermission() =>
-      _channel.invokeMethod<bool>('requestRecordPermission') as Future<bool>;
+  Future<bool> requestRecordPermission() async =>
+      (await _channel.invokeMethod<bool>('requestRecordPermission'))!;
 
-  Future<bool> get isOtherAudioPlaying =>
-      _channel.invokeMethod<bool>('isOtherAudioPlaying') as Future<bool>;
+  Future<bool> get isOtherAudioPlaying async =>
+      (await _channel.invokeMethod<bool>('isOtherAudioPlaying'))!;
 
-  Future<bool> get secondaryAudioShouldBeSilencedHint =>
-      _channel.invokeMethod<bool>('getSecondaryAudioShouldBeSilencedHint')
-          as Future<bool>;
+  Future<bool> get secondaryAudioShouldBeSilencedHint async => (await _channel
+      .invokeMethod<bool>('getSecondaryAudioShouldBeSilencedHint'))!;
 
-  Future<bool> get allowHapticsAndSystemSoundsDuringRecording => _channel
-          .invokeMethod<bool>('getAllowHapticsAndSystemSoundsDuringRecording')
-      as Future<bool>;
+  Future<bool> get allowHapticsAndSystemSoundsDuringRecording async =>
+      (await _channel.invokeMethod<bool>(
+          'getAllowHapticsAndSystemSoundsDuringRecording'))!;
 
   Future<void> setAllowHapticsAndSystemSoundsDuringRecording(bool allow) =>
       _channel.invokeMethod(
