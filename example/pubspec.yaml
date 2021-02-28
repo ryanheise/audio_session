@@ -11,15 +11,9 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  # Bootstrapping problem: The null-safety version of just_audio can't exist
-  # until the null-safety version of THIS plugin is published.
-  # just_audio: ^0.6.2
+  just_audio: ^0.7.0-nullsafety.2
   audio_session:
     path: ../
-
-  # The following adds the Cupertino Icons font to your application.
-  # Use with the CupertinoIcons class for iOS style icons.
-  cupertino_icons: ^0.1.3
 
 dev_dependencies:
   flutter_test:
