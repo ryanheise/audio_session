@@ -403,7 +403,7 @@ class AVAudioSessionInterruptionNotification {
   final AVAudioSessionInterruptionOptions options;
 
   /// This will be `null` prior to iOS 10.3.
-  final bool wasSuspended;
+  final bool? wasSuspended;
 
   AVAudioSessionInterruptionNotification({
     required this.type,
