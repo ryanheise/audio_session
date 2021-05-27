@@ -1,3 +1,8 @@
+## 0.1.1
+
+* Fix iOS interruption notifications bug.
+* Fix deprecated warnings on Android (@lhartman1).
+
 ## 0.1.0
 
 * Support null safety.
@@ -10,7 +15,7 @@
 
 * Support rxdart 0.25.0.
 * Fix leaked context on Android.
-* Remove compilex warnings on iOS.
+* Remove compiler warnings on iOS.
 
 ## 0.0.9
 
