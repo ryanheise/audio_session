@@ -1,3 +1,7 @@
+## 0.1.2
+
+* Support rxdart 0.27.0.
+
 ## 0.1.1
 
 * Fix iOS interruption notifications bug.
