@@ -74,6 +74,14 @@ static NSHashTable<DarwinAudioSession *> *sessions = nil;
         [self setAllowHapticsAndSystemSoundsDuringRecording:args result:result];
     } else if ([@"getPromptStyle" isEqualToString:call.method]) {
         [self getPromptStyle:args result:result];
+    } else if ([@"overrideOutputAudioPort" isEqualToString:call.method]) {
+        [self overrideOutputAudioPort:args result:result];
+    } else if ([@"setPreferredInput" isEqualToString:call.method]) {
+        [self setPreferredInput:args result:result];
+    } else if ([@"getCurrentRoute" isEqualToString:call.method]) {
+        [self getCurrentRoute:args result:result];
+    } else if ([@"availableInputs" isEqualToString:call.method]) {
+        [self availableInputs:args result:result];
     } else {
         result(FlutterMethodNotImplemented);
     }
@@ -227,7 +235,7 @@ static NSHashTable<DarwinAudioSession *> *sessions = nil;
 - (void)setAllowHapticsAndSystemSoundsDuringRecording:(NSArray *)args result:(FlutterResult)result {
     if (@available(iOS 13.0, *)) {
         NSError *error = nil;
-        result(@([[AVAudioSession sharedInstance] setAllowHapticsAndSystemSoundsDuringRecording:[args[0] boolValue] error:&error]));
+        [[AVAudioSession sharedInstance] setAllowHapticsAndSystemSoundsDuringRecording:[args[0] boolValue] error:&error];
         if (error) {
             [self sendError:error result:result];
         } else {
@@ -244,6 +252,201 @@ static NSHashTable<DarwinAudioSession *> *sessions = nil;
     } else {
         result(nil);
     }
+}
+
+- (NSMutableArray *)encodePortList:(NSArray<AVAudioSessionPortDescription *> *)ports {
+    NSMutableArray *array = [NSMutableArray new];
+    for (int i = 0; i < ports.count; i++) {
+        [array addObject:[self encodePort:ports[i]]];
+    }
+    return array;
+}
+
+- (NSDictionary *)encodePort:(AVAudioSessionPortDescription *)port {
+    BOOL hasHardwareVoiceCallProcessing = NO;
+    if (@available(iOS 10.0, *)) {
+        hasHardwareVoiceCallProcessing = port.hasHardwareVoiceCallProcessing;
+    }
+    return @{
+        @"portName": port.portName,
+        @"portType": [self encodePortType:port.portType],
+        @"channels": [self encodeChannels:port.channels],
+        @"uid": port.UID,
+        @"hasHardwareVoiceCallProcessing": @(hasHardwareVoiceCallProcessing),
+        @"dataSources": [self encodeDataSources:port.dataSources],
+        @"selectedDataSource": [self encodeDataSource:port.selectedDataSource],
+        @"preferredDataSource": [self encodeDataSource:port.preferredDataSource],
+    };
+}
+
+- (AVAudioSessionPortDescription *)decodePort:(NSDictionary *)port {
+    NSString *portUid = (NSString *)port[@"uid"];
+    NSArray<AVAudioSessionPortDescription *> *availableInputs = [[AVAudioSession sharedInstance] availableInputs];
+    for (int i = 0; i < availableInputs.count; i++) {
+        if ([availableInputs[i].UID isEqualToString:portUid]) {
+            return availableInputs[i];
+        }
+    }
+    return nil;
+}
+
+- (NSMutableArray *)encodeChannels:(NSArray<AVAudioSessionChannelDescription *> *)channels {
+    if (!channels) return (id)[NSNull null];
+    NSMutableArray *array = [NSMutableArray new];
+    for (int i = 0; i < channels.count; i++) {
+        [array addObject:[self encodeChannel:channels[i]]];
+    }
+    return array;
+}
+
+- (NSDictionary *)encodeChannel:(AVAudioSessionChannelDescription *)channel {
+    return @{
+        @"name": channel.channelName,
+        @"number": @(channel.channelNumber),
+        @"owningPortUid": channel.owningPortUID,
+        @"label": @(channel.channelLabel),
+    };
+}
+
+- (NSMutableArray *)encodeDataSources:(NSArray<AVAudioSessionDataSourceDescription *> *)dataSources {
+    if (!dataSources) return (id)[NSNull null];
+    NSMutableArray *array = [NSMutableArray new];
+    for (int i = 0; i < dataSources.count; i++) {
+        [array addObject:[self encodeDataSource:dataSources[i]]];
+    }
+    return array;
+}
+
+- (NSDictionary *)encodeDataSource:(AVAudioSessionDataSourceDescription *)dataSource {
+    if (!dataSource) return (id)[NSNull null];
+    NSMutableArray *supportedPolarPatterns = (id)[NSNull null];
+    if (dataSource.supportedPolarPatterns) {
+        supportedPolarPatterns = [NSMutableArray new];
+        for (int i = 0; i < dataSource.supportedPolarPatterns.count; i++) {
+            [supportedPolarPatterns addObject:[self encodePolarPattern:dataSource.supportedPolarPatterns[i]]];
+        }
+    }
+    return @{
+        @"id": dataSource.dataSourceID,
+        @"name": dataSource.dataSourceName,
+        @"location": [self encodeLocation:dataSource.location],
+        //
+        @"orientation": [self encodeOrientation:dataSource.orientation],
+        @"selectedPolarPattern": [self encodePolarPattern:dataSource.selectedPolarPattern],
+        @"supportedPolarPatterns": supportedPolarPatterns,
+        @"preferredPolarPattern": [self encodePolarPattern:dataSource.preferredPolarPattern],
+    };
+}
+
+- (NSNumber *)encodePolarPattern:(AVAudioSessionPolarPattern)polarPattern {
+    if (!polarPattern) return (id)[NSNull null];
+    if (@available(iOS 14.0, *)) {
+        if ([polarPattern isEqualToString:AVAudioSessionPolarPatternStereo]) {
+            return @(0);
+        }
+    }
+    NSDictionary *map = @{
+        AVAudioSessionPolarPatternCardioid: @(1),
+        AVAudioSessionPolarPatternSubcardioid: @(2),
+        AVAudioSessionPolarPatternOmnidirectional: @(3),
+    };
+    return map[polarPattern];
+}
+
+- (NSNumber *)encodeOrientation:(AVAudioSessionOrientation)orientation {
+    if (!orientation) return (id)[NSNull null];
+    NSDictionary *map = @{
+        AVAudioSessionOrientationTop: @(0),
+        AVAudioSessionOrientationBottom: @(1),
+        AVAudioSessionOrientationFront: @(2),
+        AVAudioSessionOrientationBack: @(3),
+        AVAudioSessionOrientationLeft: @(4),
+        AVAudioSessionOrientationRight: @(5),
+    };
+    return map[orientation];
+}
+
+- (NSNumber *)encodeLocation:(AVAudioSessionLocation)location {
+    if (!location) return (id)[NSNull null];
+    NSDictionary *map = @{
+      AVAudioSessionLocationLower: @(0),
+      AVAudioSessionLocationUpper: @(1),
+    };
+    return map[location];
+}
+
+- (NSNumber *)encodePortType:(AVAudioSessionPort)portType {
+    if (!portType) return (id)[NSNull null];
+    if (@available(iOS 14.0, *)) {
+        NSDictionary *map = @{
+            AVAudioSessionPortAVB: @(11),      
+            AVAudioSessionPortDisplayPort: @(13),              
+            AVAudioSessionPortFireWire: @(15),           
+            AVAudioSessionPortPCI: @(16),      
+            AVAudioSessionPortThunderbolt: @(17),              
+            AVAudioSessionPortVirtual: @(19),          
+        };
+        if (map[portType]) return map[portType];
+    }
+    NSDictionary *map = @{
+        AVAudioSessionPortBuiltInMic: @(0),              
+        AVAudioSessionPortHeadsetMic: @(1),              
+        AVAudioSessionPortLineIn: @(2),          
+        AVAudioSessionPortAirPlay: @(3),           
+        AVAudioSessionPortBluetoothA2DP: @(4),                 
+        AVAudioSessionPortBluetoothLE: @(5),               
+        AVAudioSessionPortBuiltInReceiver: @(6),                   
+        AVAudioSessionPortBuiltInSpeaker: @(7),                  
+        AVAudioSessionPortHDMI: @(8),        
+        AVAudioSessionPortHeadphones: @(9),              
+        AVAudioSessionPortLineOut: @(10),          
+        AVAudioSessionPortBluetoothHFP: @(12),               
+        AVAudioSessionPortCarAudio: @(14),           
+        AVAudioSessionPortUSBAudio: @(18),           
+    };
+    return map[portType];
+}
+
+- (void)overrideOutputAudioPort:(NSArray *)args result:(FlutterResult)result {
+    NSError *error = nil;
+    [[AVAudioSession sharedInstance] overrideOutputAudioPort:[self decodePortOverride:args[0]] error:&error];
+    if (error) {
+        [self sendError:error result:result];
+    } else {
+        result(nil);
+    }
+}
+
+- (void)setPreferredInput:(NSArray *)args result:(FlutterResult)result {
+    NSError *error = nil;
+    [[AVAudioSession sharedInstance] setPreferredInput:[self decodePort:args[0]] error:&error];
+    if (error) {
+        [self sendError:error result:result];
+    } else {
+        result(nil);
+    }
+}
+
+- (AVAudioSessionPortOverride)decodePortOverride:(NSNumber *)portOverrideIndex {
+    if (portOverrideIndex == (id)[NSNull null]) return AVAudioSessionPortOverrideNone;
+    switch (portOverrideIndex.integerValue) {
+        case 0: return AVAudioSessionPortOverrideNone;
+        case 1: return AVAudioSessionPortOverrideSpeaker;
+        default: return AVAudioSessionPortOverrideNone;
+    }
+}
+
+- (void)getCurrentRoute:(NSArray *)args result:(FlutterResult)result {
+    AVAudioSessionRouteDescription *currentRoute = [[AVAudioSession sharedInstance] currentRoute];
+    NSDictionary *rawRoute = @{
+        @"inputs": [self encodePortList:currentRoute.inputs],
+        @"outputs": [self encodePortList:currentRoute.outputs],
+    };
+    result(rawRoute);
+}
+
+- (void)availableInputs:(NSArray *)args result:(FlutterResult)result {
+    result([self encodePortList:[[AVAudioSession sharedInstance] availableInputs]]);
 }
 
 - (AVAudioSessionCategory)flutterToCategory:(NSNumber *)categoryIndex {

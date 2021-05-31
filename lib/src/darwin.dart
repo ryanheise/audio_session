@@ -156,19 +156,24 @@ class AVAudioSession {
     return index == null ? null : AVAudioSessionPromptStyle.values[index];
   }
 
-  //Future<AVAudioSessionRouteDescription> get currentRoute async {
-  //  return null;
-  //}
+  Future<AVAudioSessionRouteDescription> get currentRoute async {
+    return AVAudioSessionRouteDescription._fromMap(_channel,
+        (await _channel.invokeMapMethod<String, dynamic>('getCurrentRoute'))!);
+  }
 
-  //Future<List<AVAudioSessionPortDescription>> get availableInputs async {
-  //  return null;
-  //}
+  Future<List<AVAudioSessionPortDescription>> get availableInputs async {
+    return (await _channel.invokeListMethod<dynamic>('availableInputs'))!
+        .map((dynamic raw) =>
+            AVAudioSessionPortDescription._fromMap(_channel, raw))
+        .toList();
+  }
 
   //Future<AVAudioSessionPortDescription> get preferredInput {
   //  return null;
   //}
 
-  //Future<void> setPreferredInput(AVAudioSessionPortDescription input) async {}
+  Future<void> setPreferredInput(AVAudioSessionPortDescription input) =>
+      _channel.invokeMethod('setPreferredInput', [input._toMap()]);
 
   //Future<AVAudioSessionDataSourceDescription> get inputDataSource async {
   //  return null;
@@ -193,8 +198,9 @@ class AVAudioSession {
   //Future<void> setOutputDataSource(
   //    AVAudioSessionDataSourceDescription output) async {}
 
-  //Future<void> overrideOutputAudioPort(
-  //    AVAudioSessionPortOverride portOverride) async {}
+  Future<void> overrideOutputAudioPort(
+          AVAudioSessionPortOverride portOverride) =>
+      _channel.invokeMethod('overrideOutputAudioPort', [portOverride.index]);
 
   //Future<AVPreparePlaybackRouteResult>
   //    prepareRouteSelectionForPlayback() async {
@@ -447,6 +453,10 @@ class AVAudioSessionInterruptionOptions {
 class AVAudioSessionRouteChange {
   final AVAudioSessionRouteChangeReason reason;
   // add everything else later
+  // AVAudioSessionRouteDescription? previousRoute;
+  // NOTE: Maybe the Flutter side can just cache the previous
+  // route without needing to send it over the platform
+  // channel on a notification.
 
   AVAudioSessionRouteChange({required this.reason});
 }
@@ -466,137 +476,225 @@ enum AVAudioSessionRouteChangeReason {
 /// The interruption types for [AVAudioSessionSilenceSecondaryAudioHint].
 enum AVAudioSessionSilenceSecondaryAudioHintType { end, begin }
 
-//class AVAudioSessionRouteDescription {
-//  final List<AVAudioSessionPortDescription> inputs;
-//  final List<AVAudioSessionPortDescription> outputs;
-//
-//  AVAudioSessionRouteDescription(this.inputs, this.outputs);
-//}
-//
-//class AVAudioSessionPortDescription {
-//  MethodChannel _channel;
-//  // TODO: https://developer.apple.com/documentation/avfoundation/avaudiosessionportdescription?language=objc
-//  final String portName;
-//  final AVAudioSessionPort portType;
-//  final List<AVAudioSessionChannelDescription> channels;
-//  final String uid;
-//  final bool hasHardwareVoiceCallProcessing;
-//  final List<AVAudioSessionDataSourceDescription> dataSources;
-//  final AVAudioSessionDataSourceDescription selectedDataSource;
-//  AVAudioSessionDataSourceDescription _preferredDataSource;
-//
-//  AVAudioSessionPortDescription(
-//    this._channel,
-//    this.portName,
-//    this.portType,
-//    this.channels,
-//    this.uid,
-//    this.hasHardwareVoiceCallProcessing,
-//    this.dataSources,
-//    this.selectedDataSource,
-//    this._preferredDataSource,
-//  );
-//
-//  AVAudioSessionDataSourceDescription get preferredDataSource =>
-//      _preferredDataSource;
-//
-//  Future<bool> setPreferredDataSource(
-//      AVAudioSessionDataSourceDescription dataSource) async {
-//    final success = await _channel
-//        ?.invokeMethod('setPreferredDataSource', [portName, dataSource]);
-//    if (success) {
-//      _preferredDataSource = dataSource;
-//    }
-//    return success;
-//  }
-//}
-//
-//enum AVAudioSessionPort {
-//  builtInMic,
-//  headsetMic,
-//  lineIn,
-//  airPlay,
-//  bluetoothA2DP,
-//  bluetoothLE,
-//  builtInReceiver,
-//  builtInSpeaker,
-//  hDMI,
-//  headphones,
-//  lineOut,
-//  aVB,
-//  bluetoothHFP,
-//  displayPort,
-//  carAudio,
-//  fireWire,
-//  pCI,
-//  thunderbolt,
-//  uSBAudio,
-//  virtual,
-//}
-//
-//class AVAudioSessionChannelDescription {
-//  final String name;
-//  final int number;
-//  final String owningPortUid;
-//  final int label;
-//
-//  AVAudioSessionChannelDescription(
-//    this.name,
-//    this.number,
-//    this.owningPortUid,
-//    this.label,
-//  );
-//}
-//
-//class AVAudioSessionDataSourceDescription {
-//  // TODO: https://developer.apple.com/documentation/avfoundation/avaudiosessiondatasourcedescription?language=objc
-//  final MethodChannel _channel;
-//  final num id;
-//  final String name;
-//  final AVAudioSessionLocation location;
-//  final AVAudioSessionOrientation orientation;
-//  final AVAudioSessionPolarPattern selectedPolarPattern;
-//  final List<AVAudioSessionPolarPattern> supportedPolarPatterns;
-//  AVAudioSessionPolarPattern _preferredPolarPattern;
-//
-//  AVAudioSessionDataSourceDescription(
-//    this._channel,
-//    this.id,
-//    this.name,
-//    this.location,
-//    this.orientation,
-//    this.selectedPolarPattern,
-//    this.supportedPolarPatterns,
-//    this._preferredPolarPattern,
-//  );
-//
-//  AVAudioSessionPolarPattern get preferredPolarPattern =>
-//      _preferredPolarPattern;
-//
-//  Future<bool> setPreferredPolarPattern(
-//      AVAudioSessionPolarPattern pattern) async {
-//    final success = await _channel
-//        ?.invokeMethod('setPreferredPolarPattern', [name, pattern.index]);
-//    if (success) {
-//      _preferredPolarPattern = pattern;
-//    }
-//    return success;
-//  }
-//}
-//
-//enum AVAudioSessionLocation { lower, upper }
-//
-//enum AVAudioSessionOrientation { top, bottom, front, back, left, right }
-//
-//enum AVAudioSessionPolarPattern {
-//  stereo,
-//  cardioid,
-//  subcardioid,
-//  omnidirectional,
-//}
-//
-//enum AVAudioSessionPortOverride { none, speaker }
-//
+class AVAudioSessionRouteDescription {
+  final List<AVAudioSessionPortDescription> inputs;
+  final List<AVAudioSessionPortDescription> outputs;
+
+  AVAudioSessionRouteDescription({required this.inputs, required this.outputs});
+  static AVAudioSessionRouteDescription _fromMap(
+          MethodChannel channel, Map<String, dynamic> map) =>
+      AVAudioSessionRouteDescription(
+        inputs: (map['inputs'] as List<dynamic>)
+            .map((raw) => AVAudioSessionPortDescription._fromMap(channel, raw))
+            .toList(),
+        outputs: (map['outputs'] as List<dynamic>)
+            .map((raw) => AVAudioSessionPortDescription._fromMap(channel, raw))
+            .toList(),
+      );
+}
+
+class AVAudioSessionPortDescription {
+  MethodChannel _channel;
+  // TODO: https://developer.apple.com/documentation/avfoundation/avaudiosessionportdescription?language=objc
+  final String portName;
+  final AVAudioSessionPort portType;
+  final List<AVAudioSessionChannelDescription> channels;
+  final String uid;
+  final bool hasHardwareVoiceCallProcessing;
+  final List<AVAudioSessionDataSourceDescription>? dataSources;
+  final AVAudioSessionDataSourceDescription? selectedDataSource;
+  AVAudioSessionDataSourceDescription? _preferredDataSource;
+
+  AVAudioSessionPortDescription({
+    required MethodChannel channel,
+    required this.portName,
+    required this.portType,
+    required this.channels,
+    required this.uid,
+    required this.hasHardwareVoiceCallProcessing,
+    required this.dataSources,
+    required this.selectedDataSource,
+    required AVAudioSessionDataSourceDescription? preferredDataSource,
+  })  : _channel = channel,
+        _preferredDataSource = preferredDataSource;
+
+  AVAudioSessionDataSourceDescription? get preferredDataSource =>
+      _preferredDataSource;
+
+  //Future<bool> setPreferredDataSource(
+  //    AVAudioSessionDataSourceDescription dataSource) async {
+  //  final success = await _channel
+  //      ?.invokeMethod('setPreferredDataSource', [portName, dataSource]);
+  //  if (success) {
+  //    _preferredDataSource = dataSource;
+  //  }
+  //  return success;
+  //}
+
+  static AVAudioSessionPortDescription _fromMap(
+          MethodChannel channel, Map<String, dynamic> map) =>
+      AVAudioSessionPortDescription(
+        channel: channel,
+        portName: map['portName'],
+        portType: AVAudioSessionPort.values[map['portType']],
+        channels: [],
+        uid: map['uid'],
+        hasHardwareVoiceCallProcessing: map['hasHardwareVoiceCallProcessing'],
+        dataSources: (map['dataSources'] as List<dynamic>?)
+            ?.map((raw) =>
+                AVAudioSessionDataSourceDescription._fromMap(channel, raw))
+            .toList(),
+        selectedDataSource: map['selectedDataSource'] == null
+            ? null
+            : AVAudioSessionDataSourceDescription._fromMap(
+                channel, map['selectedDataSource']),
+        preferredDataSource: map['preferredDataSource'] == null
+            ? null
+            : AVAudioSessionDataSourceDescription._fromMap(
+                channel, map['preferredDataSource']),
+      );
+
+  Map<String, dynamic> _toMap() => {
+        'portName': portName,
+        'portType': portType.index,
+        'channels': channels.map((channel) => channel._toMap()).toList(),
+        'uid': uid,
+        'hasHardwareVoiceCallProcessing': hasHardwareVoiceCallProcessing,
+        'dataSources': dataSources?.map((source) => source._toMap())?.toList(),
+        'selectedDataSource': selectedDataSource?._toMap(),
+        'preferredDataSource': preferredDataSource?._toMap(),
+      };
+}
+
+enum AVAudioSessionPort {
+  builtInMic,
+  headsetMic,
+  lineIn,
+  airPlay,
+  bluetoothA2dp,
+  bluetoothLe,
+  builtInReceiver,
+  builtInSpeaker,
+  hdmi,
+  headphones,
+  lineOut,
+  avb,
+  bluetoothHfp,
+  displayPort,
+  carAudio,
+  fireWire,
+  pci,
+  thunderbolt,
+  usbAudio,
+  virtual,
+}
+
+class AVAudioSessionChannelDescription {
+  final String name;
+  final int number;
+  final String owningPortUid;
+  final int label;
+
+  AVAudioSessionChannelDescription(
+    this.name,
+    this.number,
+    this.owningPortUid,
+    this.label,
+  );
+
+  Map<String, dynamic> _toMap() => {
+        'name': name,
+        'number': number,
+        'owningPortUid': owningPortUid,
+        'label': label,
+      };
+}
+
+class AVAudioSessionDataSourceDescription {
+  // TODO: https://developer.apple.com/documentation/avfoundation/avaudiosessiondatasourcedescription?language=objc
+  final MethodChannel _channel;
+  final int id;
+  final String name;
+  final AVAudioSessionLocation? location;
+  final AVAudioSessionOrientation? orientation;
+  final AVAudioSessionPolarPattern? selectedPolarPattern;
+  final List<AVAudioSessionPolarPattern>? supportedPolarPatterns;
+  final AVAudioSessionPolarPattern? _preferredPolarPattern;
+
+  AVAudioSessionDataSourceDescription({
+    required MethodChannel channel,
+    required this.id,
+    required this.name,
+    required this.location,
+    required this.orientation,
+    required this.selectedPolarPattern,
+    required this.supportedPolarPatterns,
+    required AVAudioSessionPolarPattern? preferredPolarPattern,
+  })  : _channel = channel,
+        _preferredPolarPattern = preferredPolarPattern;
+
+  AVAudioSessionPolarPattern? get preferredPolarPattern =>
+      _preferredPolarPattern;
+
+  //Future<bool> setPreferredPolarPattern(
+  //    AVAudioSessionPolarPattern pattern) async {
+  //  final success = await _channel
+  //      ?.invokeMethod('setPreferredPolarPattern', [name, pattern.index]);
+  //  if (success) {
+  //    _preferredPolarPattern = pattern;
+  //  }
+  //  return success;
+  //}
+
+  static AVAudioSessionDataSourceDescription _fromMap(
+          MethodChannel channel, Map<String, dynamic> map) =>
+      AVAudioSessionDataSourceDescription(
+        channel: channel,
+        id: map['id'],
+        name: map['name'],
+        location: map['location'] == null
+            ? null
+            : AVAudioSessionLocation.values[map['location']],
+        orientation: map['orientation'] == null
+            ? null
+            : AVAudioSessionOrientation.values[map['orientation']],
+        selectedPolarPattern: map['selectedPolarPattern'] == null
+            ? null
+            : AVAudioSessionPolarPattern.values[map['selectedPolarPattern']],
+        supportedPolarPatterns:
+            (map['supportedPolarPatterns'] as List<dynamic>?)
+                ?.map((index) => AVAudioSessionPolarPattern.values[index])
+                .toList(),
+        preferredPolarPattern: map['preferredPolarPattern'] == null
+            ? null
+            : AVAudioSessionPolarPattern.values[map['preferredPolarPattern']],
+      );
+
+  Map<String, dynamic> _toMap() => {
+        'id': id,
+        'name': name,
+        'location': location?.index,
+        'orientation': orientation?.index,
+        'selectedPolarPattern': selectedPolarPattern?.index,
+        'supportedPolarPatterns':
+            supportedPolarPatterns?.map((pattern) => pattern.index).toList(),
+        'preferredPolarPattern': preferredPolarPattern?.index,
+      };
+}
+
+enum AVAudioSessionLocation { lower, upper }
+
+enum AVAudioSessionOrientation { top, bottom, front, back, left, right }
+
+enum AVAudioSessionPolarPattern {
+  stereo,
+  cardioid,
+  subcardioid,
+  omnidirectional,
+}
+
+enum AVAudioSessionPortOverride { none, speaker }
+
 //class AVPreparePlaybackRouteResult {
 //  final bool shouldStartPlayback;
 //  final AVAudioSessionRouteSelection routeSelection;
