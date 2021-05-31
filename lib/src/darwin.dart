@@ -271,13 +271,15 @@ class AVAudioSession {
 
   //Future<void> setPreferredSampleRate(double rate) async {}
 
-  //Future<Duration> get inputLatency async {
-  //  return Duration.zero;
-  //}
+  Future<Duration> get inputLatency async {
+    return Duration(
+        microseconds: (await _channel.invokeMethod<int>('inputLatency'))!);
+  }
 
-  //Future<Duration> get outputLatency async {
-  //  return Duration.zero;
-  //}
+  Future<Duration> get outputLatency async {
+    return Duration(
+        microseconds: (await _channel.invokeMethod<int>('outputLatency'))!);
+  }
 
   //Future<Duration> get ioBufferDuration async {
   //  return Duration.zero;

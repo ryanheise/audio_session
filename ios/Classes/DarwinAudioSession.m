@@ -80,8 +80,12 @@ static NSHashTable<DarwinAudioSession *> *sessions = nil;
         [self setPreferredInput:args result:result];
     } else if ([@"getCurrentRoute" isEqualToString:call.method]) {
         [self getCurrentRoute:args result:result];
-    } else if ([@"availableInputs" isEqualToString:call.method]) {
-        [self availableInputs:args result:result];
+    } else if ([@"getAvailableInputs" isEqualToString:call.method]) {
+        [self getAvailableInputs:args result:result];
+    } else if ([@"getInputLatency" isEqualToString:call.method]) {
+        [self getInputLatency:args result:result];
+    } else if ([@"getOutputLatency" isEqualToString:call.method]) {
+        [self getOutputLatency:args result:result];
     } else {
         result(FlutterMethodNotImplemented);
     }
@@ -445,8 +449,16 @@ static NSHashTable<DarwinAudioSession *> *sessions = nil;
     result(rawRoute);
 }
 
-- (void)availableInputs:(NSArray *)args result:(FlutterResult)result {
+- (void)getAvailableInputs:(NSArray *)args result:(FlutterResult)result {
     result([self encodePortList:[[AVAudioSession sharedInstance] availableInputs]]);
+}
+
+- (void)getInputLatency:(NSArray *)args result:(FlutterResult)result {
+    result(@((long long)([[AVAudioSession sharedInstance] inputLatency] * 1000000.0)));
+}
+
+- (void)getOutputLatency:(NSArray *)args result:(FlutterResult)result {
+    result(@((long long)([[AVAudioSession sharedInstance] outputLatency] * 1000000.0)));
 }
 
 - (AVAudioSessionCategory)flutterToCategory:(NSNumber *)categoryIndex {
