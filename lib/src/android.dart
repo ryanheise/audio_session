@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:audio_session/src/util.dart';
 import 'package:flutter/services.dart';
 import 'package:rxdart/rxdart.dart';
 
@@ -33,7 +34,9 @@ class AndroidAudioManager {
       switch (call.method) {
         case 'onAudioFocusChanged':
           if (_onAudioFocusChanged != null) {
-            _onAudioFocusChanged!(AndroidAudioFocus.values[args[0]]!);
+            _onAudioFocusChanged!(decodeMapEnum(
+                AndroidAudioFocus.values, args[0],
+                defaultIndex: 1));
           }
           break;
         case 'onBecomingNoisy':
@@ -70,7 +73,7 @@ class AndroidAudioManager {
           (raw['channelIndexMasks'] as List<dynamic>).cast<int>(),
       channelCounts: (raw['channelCounts'] as List<dynamic>).cast<int>(),
       encodings: (raw['encodings'] as List<dynamic>).cast<int>(),
-      type: AndroidAudioDeviceType.values[raw['type']],
+      type: decodeEnum(AndroidAudioDeviceType.values, raw['type']),
     );
   }
 
@@ -121,8 +124,9 @@ class AndroidAudioManager {
   }
 
   Future<AndroidRingerMode> getRingerMode() async {
-    return AndroidRingerMode
-        .values[(await _channel.invokeMethod<int>('getRingerMode'))!];
+    return decodeEnum(AndroidRingerMode.values,
+        (await _channel.invokeMethod<int>('getRingerMode'))!,
+        defaultIndex: 2);
   }
 
   Future<int> getStreamMaxVolume(AndroidStreamType streamType) async {
@@ -184,8 +188,9 @@ class AndroidAudioManager {
 
   /// Requires API level 29
   Future<AndroidAudioCapturePolicy> getAllowedCapturePolicy() async {
-    return AndroidAudioCapturePolicy.values[
-        (await _channel.invokeMethod<int>('getAllowedCapturePolicy'))!]!;
+    return decodeMapEnum(AndroidAudioCapturePolicy.values,
+        (await _channel.invokeMethod<int>('getAllowedCapturePolicy'))!,
+        defaultIndex: 1);
   }
 
   // TODO: isOffloadedPlaybackSupported
@@ -224,8 +229,8 @@ class AndroidAudioManager {
   }
 
   Future<AndroidAudioHardwareMode> getMode() async {
-    return AndroidAudioHardwareMode
-        .values[(await _channel.invokeMethod<int>('getMode'))!]!;
+    return decodeMapEnum(AndroidAudioHardwareMode.values,
+        (await _channel.invokeMethod<int>('getMode'))!);
   }
 
   Future<bool> isMusicActive() async {
@@ -328,7 +333,8 @@ class AndroidAudioManager {
               id: raw['id'],
               type: raw['type'],
               address: raw['address'],
-              location: AndroidMicrophoneLocation.values[raw['location']],
+              location:
+                  decodeEnum(AndroidMicrophoneLocation.values, raw['location']),
               group: raw['group'],
               indexInTheGroup: raw['indexInTheGroup'],
               position: (raw['position'] as List<dynamic>).cast<double>(),
@@ -342,8 +348,8 @@ class AndroidAudioManager {
               sensitivity: raw['sensitivity'],
               maxSpl: raw['maxSpl'],
               minSpl: raw['minSpl'],
-              directionality:
-                  AndroidMicrophoneDirectionality.values[raw['directionality']],
+              directionality: decodeEnum(AndroidMicrophoneDirectionality.values,
+                  raw['directionality']),
             ))
         .toList();
   }
@@ -377,9 +383,10 @@ class AndroidAudioAttributes {
 
   AndroidAudioAttributes.fromJson(Map data)
       : this(
-          contentType: AndroidAudioContentType.values[data['contentType']],
+          contentType:
+              decodeEnum(AndroidAudioContentType.values, data['contentType']),
           flags: AndroidAudioFlags(data['flags']),
-          usage: AndroidAudioUsage.values[data['usage']]!,
+          usage: decodeMapEnum(AndroidAudioUsage.values, data['usage']),
         );
 
   Map toJson() => {
@@ -663,6 +670,10 @@ enum AndroidAudioDeviceType {
   bus,
   usbHeadset,
   hearingAid,
+  builtInSpeakerSafe,
+
+  /// Android internal
+  remoteSubmix,
 }
 
 class AndroidAudioCapturePolicy {

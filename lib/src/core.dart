@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
+import 'package:meta/meta.dart' show experimental;
 import 'package:rxdart/rxdart.dart';
 
 import 'android.dart';
@@ -292,6 +293,10 @@ class AudioSession {
         return AudioDeviceType.usbAudio;
       case AndroidAudioDeviceType.hearingAid:
         return AudioDeviceType.hearingAid;
+      case AndroidAudioDeviceType.builtInSpeakerSafe:
+        return AudioDeviceType.builtInSpeakerSafe;
+      case AndroidAudioDeviceType.remoteSubmix:
+        return AudioDeviceType.remoteSubmix;
     }
   }
 
@@ -640,21 +645,14 @@ class AudioDevice {
       'AudioDevice(id:$id,name:$name,isInput:$isInput,isOutput:$isOutput,type:$type)';
 }
 
+@experimental
 enum AudioDeviceType {
   unknown,
   builtInEarpiece,
-
-  /// Corresponds to [AndroidAudioDeviceType.builtInEarpiece] and
-  /// [AVAudioSessionPort.builtInSpeaker].
   builtInSpeaker,
   wiredHeadset,
-
   wiredHeadphones,
-
-  /// Corresponds to [AndroidAudioDeviceType.wiredHeadset] and
-  /// [AVAudioSessionPort.headsetMic].
   headsetMic,
-
   lineAnalog,
   lineDigital,
   bluetoothSco,
@@ -681,4 +679,6 @@ enum AudioDeviceType {
   pci,
   thunderbolt,
   virtual,
+  builtInSpeakerSafe,
+  remoteSubmix,
 }

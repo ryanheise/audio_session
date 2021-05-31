@@ -90,7 +90,7 @@ class _MyAppState extends State<MyApp> {
     });
     audioSession.devicesChangedEventStream.listen((event) {
       print('Devices added: ${event.devicesAdded}');
-      print('Devices removed: ${event.devicesAdded}');
+      print('Devices removed: ${event.devicesRemoved}');
     });
   }
 
@@ -154,14 +154,14 @@ class _MyAppState extends State<MyApp> {
                             for (var device
                                 in devices.where((device) => device.isInput))
                               Text(
-                                  '${device.id}: ${device.name} (${describeEnum(device.type)})'),
+                                  '${device.name} (${describeEnum(device.type)})'),
                             SizedBox(height: 16),
                             Text("Output devices",
                                 style: Theme.of(context).textTheme.headline6),
                             for (var device
                                 in devices.where((device) => device.isOutput))
                               Text(
-                                  '${device.id}: ${device.name} (${describeEnum(device.type)})'),
+                                  '${device.name} (${describeEnum(device.type)})'),
                           ],
                         );
                       },

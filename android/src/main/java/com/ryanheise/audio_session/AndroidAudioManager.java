@@ -249,10 +249,6 @@ public class AndroidAudioManager implements MethodCallHandler {
             }
         };
 
-        Singleton() {
-            audioManager.registerAudioDeviceCallback(audioDeviceCallback, handler);
-        }
-
         private static List<?> encodeAudioDevices(AudioDeviceInfo[] devices) {
             ArrayList<Map<String, Object>> result = new ArrayList<>();
             for (AudioDeviceInfo device : devices) {
@@ -280,6 +276,7 @@ public class AndroidAudioManager implements MethodCallHandler {
         public Singleton(Context applicationContext) {
             this.applicationContext = applicationContext;
             audioManager = (AudioManager)applicationContext.getSystemService(Context.AUDIO_SERVICE);
+            audioManager.registerAudioDeviceCallback(audioDeviceCallback, handler);
         }
 
         public void add(AndroidAudioManager manager) {
