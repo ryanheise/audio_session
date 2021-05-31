@@ -640,8 +640,8 @@ enum AndroidRingerMode {
 
 enum AndroidAudioDeviceType {
   unknown,
-  builtinEarpiece,
-  builtinSpeaker,
+  builtInEarpiece,
+  builtInSpeaker,
   wiredHeadset,
   wiredHeadphones,
   lineAnalog,
@@ -654,7 +654,7 @@ enum AndroidAudioDeviceType {
   usbAccessory,
   dock,
   fm,
-  builtinMic,
+  builtInMic,
   fmTuner,
   tvTuner,
   telephony,

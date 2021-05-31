@@ -161,11 +161,11 @@ class AVAudioSession {
         (await _channel.invokeMapMethod<String, dynamic>('getCurrentRoute'))!);
   }
 
-  Future<List<AVAudioSessionPortDescription>> get availableInputs async {
-    return (await _channel.invokeListMethod<dynamic>('availableInputs'))!
-        .map((dynamic raw) =>
-            AVAudioSessionPortDescription._fromMap(_channel, raw))
-        .toList();
+  Future<Set<AVAudioSessionPortDescription>> get availableInputs async {
+    return (await _channel.invokeListMethod<dynamic>('getAvailableInputs'))!
+        .map((dynamic raw) => AVAudioSessionPortDescription._fromMap(
+            _channel, raw.cast<String, dynamic>()))
+        .toSet();
   }
 
   //Future<AVAudioSessionPortDescription> get preferredInput {
@@ -255,7 +255,7 @@ class AVAudioSession {
   //  return false;
   //}
 
-  //Future<void> setInputGame(double gain) async {}
+  //Future<void> setInputGain(double gain) async {}
 
   //Future<double> get outputVolume async {
   //  return 1.0;
@@ -273,12 +273,12 @@ class AVAudioSession {
 
   Future<Duration> get inputLatency async {
     return Duration(
-        microseconds: (await _channel.invokeMethod<int>('inputLatency'))!);
+        microseconds: (await _channel.invokeMethod<int>('getInputLatency'))!);
   }
 
   Future<Duration> get outputLatency async {
     return Duration(
-        microseconds: (await _channel.invokeMethod<int>('outputLatency'))!);
+        microseconds: (await _channel.invokeMethod<int>('getOutputLatency'))!);
   }
 
   //Future<Duration> get ioBufferDuration async {
@@ -479,19 +479,21 @@ enum AVAudioSessionRouteChangeReason {
 enum AVAudioSessionSilenceSecondaryAudioHintType { end, begin }
 
 class AVAudioSessionRouteDescription {
-  final List<AVAudioSessionPortDescription> inputs;
-  final List<AVAudioSessionPortDescription> outputs;
+  final Set<AVAudioSessionPortDescription> inputs;
+  final Set<AVAudioSessionPortDescription> outputs;
 
   AVAudioSessionRouteDescription({required this.inputs, required this.outputs});
   static AVAudioSessionRouteDescription _fromMap(
           MethodChannel channel, Map<String, dynamic> map) =>
       AVAudioSessionRouteDescription(
         inputs: (map['inputs'] as List<dynamic>)
-            .map((raw) => AVAudioSessionPortDescription._fromMap(channel, raw))
-            .toList(),
+            .map((raw) => AVAudioSessionPortDescription._fromMap(
+                channel, raw.cast<String, dynamic>()))
+            .toSet(),
         outputs: (map['outputs'] as List<dynamic>)
-            .map((raw) => AVAudioSessionPortDescription._fromMap(channel, raw))
-            .toList(),
+            .map((raw) => AVAudioSessionPortDescription._fromMap(
+                channel, raw.cast<String, dynamic>()))
+            .toSet(),
       );
 }
 
@@ -543,17 +545,17 @@ class AVAudioSessionPortDescription {
         uid: map['uid'],
         hasHardwareVoiceCallProcessing: map['hasHardwareVoiceCallProcessing'],
         dataSources: (map['dataSources'] as List<dynamic>?)
-            ?.map((raw) =>
-                AVAudioSessionDataSourceDescription._fromMap(channel, raw))
+            ?.map((raw) => AVAudioSessionDataSourceDescription._fromMap(
+                channel, raw.cast<String, dynamic>()))
             .toList(),
         selectedDataSource: map['selectedDataSource'] == null
             ? null
             : AVAudioSessionDataSourceDescription._fromMap(
-                channel, map['selectedDataSource']),
+                channel, map['selectedDataSource'].cast<String, dynamic>()),
         preferredDataSource: map['preferredDataSource'] == null
             ? null
             : AVAudioSessionDataSourceDescription._fromMap(
-                channel, map['preferredDataSource']),
+                channel, map['preferredDataSource'].cast<String, dynamic>()),
       );
 
   Map<String, dynamic> _toMap() => {
@@ -562,10 +564,16 @@ class AVAudioSessionPortDescription {
         'channels': channels.map((channel) => channel._toMap()).toList(),
         'uid': uid,
         'hasHardwareVoiceCallProcessing': hasHardwareVoiceCallProcessing,
-        'dataSources': dataSources?.map((source) => source._toMap())?.toList(),
+        'dataSources': dataSources?.map((source) => source._toMap()).toList(),
         'selectedDataSource': selectedDataSource?._toMap(),
         'preferredDataSource': preferredDataSource?._toMap(),
       };
+
+  @override
+  bool operator ==(Object other) =>
+      other is AVAudioSessionPortDescription && uid == other.uid;
+
+  int get hashCode => uid.hashCode;
 }
 
 enum AVAudioSessionPort {

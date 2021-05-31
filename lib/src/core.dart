@@ -44,8 +44,17 @@ class AudioSession {
   final _configurationSubject = BehaviorSubject<AudioSessionConfiguration>();
   final _interruptionEventSubject = PublishSubject<AudioInterruptionEvent>();
   final _becomingNoisyEventSubject = PublishSubject<void>();
+  final _devicesChangedEventSubject =
+      PublishSubject<AudioDevicesChangedEvent>();
+  late final BehaviorSubject<Set<AudioDevice>> _devicesSubject;
+  AVAudioSessionRouteDescription? _previousAVAudioSessionRoute;
 
   AudioSession._() {
+    _devicesSubject = BehaviorSubject<Set<AudioDevice>>(
+      onListen: () async {
+        _devicesSubject.add(await getDevices());
+      },
+    );
     _avAudioSession?.interruptionNotificationStream.listen((notification) {
       switch (notification.type) {
         case AVAudioSessionInterruptionType.began:
@@ -68,9 +77,63 @@ class AudioSession {
         .where((routeChange) =>
             routeChange.reason ==
             AVAudioSessionRouteChangeReason.oldDeviceUnavailable)
-        .listen((routeChange) => _becomingNoisyEventSubject.add(null));
+        .listen((routeChange) async {
+      _becomingNoisyEventSubject.add(null);
+      final currentRoute = await _avAudioSession!.currentRoute;
+      _previousAVAudioSessionRoute = currentRoute;
+      final previousRoute = _previousAVAudioSessionRoute ?? currentRoute;
+      final inputPortsAdded =
+          currentRoute.inputs.difference(previousRoute.inputs);
+      final outputPortsAdded =
+          currentRoute.outputs.difference(previousRoute.outputs);
+      final inputPortsRemoved =
+          previousRoute.inputs.difference(currentRoute.inputs);
+      final outputPortsRemoved =
+          previousRoute.outputs.difference(currentRoute.outputs);
+      final inputPorts = inputPortsAdded.union(inputPortsRemoved);
+      final outputPorts = outputPortsAdded.union(outputPortsRemoved);
+
+      final devicesAdded = inputPortsAdded
+          .union(outputPortsAdded)
+          .map((port) => _darwinPort2device(port,
+              inputPorts: inputPorts, outputPorts: outputPorts))
+          .toSet();
+      final devicesRemoved = inputPortsRemoved
+          .union(outputPortsRemoved)
+          .map((port) => _darwinPort2device(port,
+              inputPorts: inputPorts, outputPorts: outputPorts))
+          .toSet();
+
+      _devicesChangedEventSubject.add(AudioDevicesChangedEvent(
+        devicesAdded: devicesAdded,
+        devicesRemoved: devicesRemoved,
+      ));
+
+      if (_devicesSubject.hasListener) {
+        _devicesSubject.add(await getDevices());
+      }
+    });
     _androidAudioManager?.becomingNoisyEventStream
         .listen((event) => _becomingNoisyEventSubject.add(null));
+
+    _androidAudioManager?.setAudioDevicesAddedListener((devices) async {
+      _devicesChangedEventSubject.add(AudioDevicesChangedEvent(
+        devicesAdded: devices.map(_androidDevice2device).toSet(),
+        devicesRemoved: {},
+      ));
+      if (_devicesSubject.hasListener) {
+        _devicesSubject.add(await getDevices());
+      }
+    });
+    _androidAudioManager?.setAudioDevicesRemovedListener((devices) async {
+      _devicesChangedEventSubject.add(AudioDevicesChangedEvent(
+        devicesAdded: {},
+        devicesRemoved: devices.map(_androidDevice2device).toSet(),
+      ));
+      if (_devicesSubject.hasListener) {
+        _devicesSubject.add(await getDevices());
+      }
+    });
     _channel.setMethodCallHandler((MethodCall call) async {
       final List? args = call.arguments;
       switch (call.method) {
@@ -80,6 +143,166 @@ class AudioSession {
           break;
       }
     });
+  }
+
+  Future<Set<AudioDevice>> getDevices(
+      {bool includeInputs = true, bool includeOutputs = true}) async {
+    final devices = <AudioDevice>{};
+    if (_androidAudioManager != null) {
+      var flags = AndroidGetAudioDevicesFlags.none;
+      if (includeInputs) flags |= AndroidGetAudioDevicesFlags.inputs;
+      if (includeOutputs) flags |= AndroidGetAudioDevicesFlags.outputs;
+      final androidDevices = await _androidAudioManager!.getDevices(flags);
+      devices.addAll(androidDevices.map(_androidDevice2device).toSet());
+    } else if (_avAudioSession != null) {
+      final currentRoute = await _avAudioSession!.currentRoute;
+      if (includeInputs) {
+        final darwinInputs = await _avAudioSession!.availableInputs;
+        devices.addAll(darwinInputs
+            .map((port) => _darwinPort2device(port, inputPorts: darwinInputs))
+            .toSet());
+        devices.addAll(currentRoute.inputs.map((port) => _darwinPort2device(
+              port,
+              inputPorts: currentRoute.inputs,
+              outputPorts: currentRoute.outputs,
+            )));
+      }
+      if (includeOutputs) {
+        devices.addAll(currentRoute.outputs.map((port) => _darwinPort2device(
+              port,
+              inputPorts: currentRoute.inputs,
+              outputPorts: currentRoute.outputs,
+            )));
+      }
+    }
+    return devices;
+  }
+
+  static AudioDeviceType _darwinPort2type(AVAudioSessionPort port,
+      {Set<AVAudioSessionPortDescription> inputPorts = const {}}) {
+    switch (port) {
+      case AVAudioSessionPort.builtInMic:
+        return AudioDeviceType.builtInMic;
+      case AVAudioSessionPort.headsetMic:
+        return AudioDeviceType.wiredHeadset;
+      case AVAudioSessionPort.lineIn:
+        return AudioDeviceType.dock;
+      case AVAudioSessionPort.airPlay:
+        return AudioDeviceType.airPlay;
+      case AVAudioSessionPort.bluetoothA2dp:
+        return AudioDeviceType.bluetoothA2dp;
+      case AVAudioSessionPort.bluetoothLe:
+        return AudioDeviceType.bluetoothLe;
+      case AVAudioSessionPort.builtInReceiver:
+        return AudioDeviceType.builtInEarpiece;
+      case AVAudioSessionPort.builtInSpeaker:
+        return AudioDeviceType.builtInSpeaker;
+      case AVAudioSessionPort.hdmi:
+        return AudioDeviceType.hdmi;
+      case AVAudioSessionPort.headphones:
+        return inputPorts
+                .map((desc) => desc.portType)
+                .contains(AVAudioSessionPort.headsetMic)
+            ? AudioDeviceType.wiredHeadset
+            : AudioDeviceType.wiredHeadphones;
+      case AVAudioSessionPort.lineOut:
+        return AudioDeviceType.dock;
+      case AVAudioSessionPort.avb:
+        return AudioDeviceType.avb;
+      case AVAudioSessionPort.bluetoothHfp:
+        return AudioDeviceType.bluetoothSco;
+      case AVAudioSessionPort.displayPort:
+        return AudioDeviceType.displayPort;
+      case AVAudioSessionPort.carAudio:
+        return AudioDeviceType.carAudio;
+      case AVAudioSessionPort.fireWire:
+        return AudioDeviceType.fireWire;
+      case AVAudioSessionPort.pci:
+        return AudioDeviceType.pci;
+      case AVAudioSessionPort.thunderbolt:
+        return AudioDeviceType.thunderbolt;
+      case AVAudioSessionPort.usbAudio:
+        return AudioDeviceType.usbAudio;
+      case AVAudioSessionPort.virtual:
+        return AudioDeviceType.virtual;
+    }
+  }
+
+  static AudioDevice _darwinPort2device(
+    AVAudioSessionPortDescription port, {
+    Set<AVAudioSessionPortDescription> inputPorts = const {},
+    Set<AVAudioSessionPortDescription> outputPorts = const {},
+  }) {
+    return AudioDevice(
+      id: port.uid,
+      name: port.portName,
+      isInput: inputPorts.contains(port),
+      isOutput: outputPorts.contains(port),
+      type: _darwinPort2type(port.portType, inputPorts: inputPorts),
+    );
+  }
+
+  static AudioDeviceType _androidType2type(AndroidAudioDeviceType type) {
+    switch (type) {
+      case AndroidAudioDeviceType.unknown:
+        return AudioDeviceType.unknown;
+      case AndroidAudioDeviceType.builtInEarpiece:
+        return AudioDeviceType.builtInEarpiece;
+      case AndroidAudioDeviceType.builtInSpeaker:
+        return AudioDeviceType.builtInSpeaker;
+      case AndroidAudioDeviceType.wiredHeadset:
+        return AudioDeviceType.wiredHeadset;
+      case AndroidAudioDeviceType.wiredHeadphones:
+        return AudioDeviceType.wiredHeadphones;
+      case AndroidAudioDeviceType.lineAnalog:
+        return AudioDeviceType.lineAnalog;
+      case AndroidAudioDeviceType.lineDigital:
+        return AudioDeviceType.lineDigital;
+      case AndroidAudioDeviceType.bluetoothSco:
+        return AudioDeviceType.bluetoothSco;
+      case AndroidAudioDeviceType.bluetoothA2dp:
+        return AudioDeviceType.bluetoothA2dp;
+      case AndroidAudioDeviceType.hdmi:
+        return AudioDeviceType.hdmi;
+      case AndroidAudioDeviceType.hdmiArc:
+        return AudioDeviceType.hdmiArc;
+      case AndroidAudioDeviceType.usbDevice:
+        return AudioDeviceType.usbAudio;
+      case AndroidAudioDeviceType.usbAccessory:
+        return AudioDeviceType.usbAudio;
+      case AndroidAudioDeviceType.dock:
+        return AudioDeviceType.dock;
+      case AndroidAudioDeviceType.fm:
+        return AudioDeviceType.fm;
+      case AndroidAudioDeviceType.builtInMic:
+        return AudioDeviceType.builtInMic;
+      case AndroidAudioDeviceType.fmTuner:
+        return AudioDeviceType.fmTuner;
+      case AndroidAudioDeviceType.tvTuner:
+        return AudioDeviceType.tvTuner;
+      case AndroidAudioDeviceType.telephony:
+        return AudioDeviceType.telephony;
+      case AndroidAudioDeviceType.auxLine:
+        return AudioDeviceType.auxLine;
+      case AndroidAudioDeviceType.ip:
+        return AudioDeviceType.ip;
+      case AndroidAudioDeviceType.bus:
+        return AudioDeviceType.bus;
+      case AndroidAudioDeviceType.usbHeadset:
+        return AudioDeviceType.usbAudio;
+      case AndroidAudioDeviceType.hearingAid:
+        return AudioDeviceType.hearingAid;
+    }
+  }
+
+  static AudioDevice _androidDevice2device(AndroidAudioDeviceInfo device) {
+    return AudioDevice(
+      id: device.id.toString(),
+      name: device.productName,
+      isInput: device.isSource,
+      isOutput: device.isSink,
+      type: _androidType2type(device.type),
+    );
   }
 
   /// The current configuration.
@@ -108,6 +331,11 @@ class AudioSession {
   /// unplugging the headphones).
   Stream<void> get becomingNoisyEventStream =>
       _becomingNoisyEventSubject.stream;
+
+  Stream<AudioDevicesChangedEvent> get devicesChangedEventStream =>
+      _devicesChangedEventSubject.stream;
+
+  Stream<Set<AudioDevice>> get devicesStream => _devicesSubject.stream;
 
   /// Configures the audio session. It is useful to call this method during
   /// your app's initialisation before you start playing or recording any
@@ -374,4 +602,83 @@ enum AudioInterruptionType {
 
   /// Audio should be paused, possibly indefinitely.
   unknown
+}
+
+class AudioDevicesChangedEvent {
+  final Set<AudioDevice> devicesAdded;
+  final Set<AudioDevice> devicesRemoved;
+
+  AudioDevicesChangedEvent({
+    this.devicesAdded = const {},
+    this.devicesRemoved = const {},
+  });
+}
+
+class AudioDevice {
+  final String id;
+  final String name;
+  final bool isInput;
+  final bool isOutput;
+  final AudioDeviceType type;
+
+  AudioDevice({
+    required this.id,
+    required this.name,
+    required this.isInput,
+    required this.isOutput,
+    required this.type,
+  });
+
+  @override
+  int get hashCode => id.hashCode;
+
+  @override
+  bool operator ==(Object other) => other is AudioDevice && id == other.id;
+
+  @override
+  String toString() =>
+      'AudioDevice(id:$id,name:$name,isInput:$isInput,isOutput:$isOutput,type:$type)';
+}
+
+enum AudioDeviceType {
+  unknown,
+  builtInEarpiece,
+
+  /// Corresponds to [AndroidAudioDeviceType.builtInEarpiece] and
+  /// [AVAudioSessionPort.builtInSpeaker].
+  builtInSpeaker,
+  wiredHeadset,
+
+  wiredHeadphones,
+
+  /// Corresponds to [AndroidAudioDeviceType.wiredHeadset] and
+  /// [AVAudioSessionPort.headsetMic].
+  headsetMic,
+
+  lineAnalog,
+  lineDigital,
+  bluetoothSco,
+  bluetoothA2dp,
+  hdmi,
+  hdmiArc,
+  usbAudio,
+  dock,
+  fm,
+  builtInMic,
+  fmTuner,
+  tvTuner,
+  telephony,
+  auxLine,
+  ip,
+  bus,
+  hearingAid,
+  airPlay,
+  bluetoothLe,
+  avb,
+  displayPort,
+  carAudio,
+  fireWire,
+  pci,
+  thunderbolt,
+  virtual,
 }
