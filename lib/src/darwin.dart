@@ -121,9 +121,6 @@ class AVAudioSession {
     return index == null ? null : AVAudioSessionRecordPermission.values[index];
   }
 
-  Future<bool> requestRecordPermission() =>
-      _channel.invokeMethod('requestRecordPermission');
-
   Future<bool> get isOtherAudioPlaying =>
       _channel.invokeMethod('isOtherAudioPlaying');
 

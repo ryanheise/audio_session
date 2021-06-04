@@ -62,8 +62,6 @@ static NSHashTable<DarwinAudioSession *> *sessions = nil;
         [self setActive:args result:result];
     } else if ([@"getRecordPermission" isEqualToString:call.method]) {
         [self getRecordPermission:args result:result];
-    } else if ([@"requestRecordPermission" isEqualToString:call.method]) {
-        [self requestRecordPermission:args result:result];
     } else if ([@"isOtherAudioPlaying" isEqualToString:call.method]) {
         [self isOtherAudioPlaying:args result:result];
     } else if ([@"getSecondaryAudioShouldBeSilencedHint" isEqualToString:call.method]) {
@@ -200,12 +198,6 @@ static NSHashTable<DarwinAudioSession *> *sessions = nil;
 
 - (void)getRecordPermission:(NSArray *)args result:(FlutterResult)result {
     result([self recordPermissionToFlutter:[[AVAudioSession sharedInstance] recordPermission]]);
-}
-
-- (void)requestRecordPermission:(NSArray *)args result:(FlutterResult)result {
-    [[AVAudioSession sharedInstance] requestRecordPermission:^(BOOL granted) {
-        result(@(granted));
-    }];
 }
 
 - (void)isOtherAudioPlaying:(NSArray *)args result:(FlutterResult)result {
