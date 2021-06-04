@@ -254,7 +254,6 @@ static NSHashTable<DarwinAudioSession *> *sessions = nil;
             case 1: category = AVAudioSessionCategorySoloAmbient; break;
             case 2: category = AVAudioSessionCategoryPlayback; break;
             case 3: category = AVAudioSessionCategoryRecord; break;
-            case 4: category = AVAudioSessionCategoryPlayAndRecord; break;
             case 5: category = AVAudioSessionCategoryMultiRoute; break;
         }
     }
@@ -266,7 +265,6 @@ static NSHashTable<DarwinAudioSession *> *sessions = nil;
     else if (category == AVAudioSessionCategorySoloAmbient) return @(1);
     else if (category == AVAudioSessionCategoryPlayback) return @(2);
     else if (category == AVAudioSessionCategoryRecord) return @(3);
-    else if (category == AVAudioSessionCategoryPlayAndRecord) return @(4);
     else return @(5);
 }
 

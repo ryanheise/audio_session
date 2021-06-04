@@ -26,23 +26,7 @@ await session.configure(AudioSessionConfiguration.speech());
 
 Or use a custom configuration:
 
-```dart
-final session = await AudioSession.instance;
-await session.configure(AudioSessionConfiguration(
-  avAudioSessionCategory: AVAudioSessionCategory.playAndRecord,
-  avAudioSessionCategoryOptions: AVAudioSessionCategoryOptions.allowBluetooth,
-  avAudioSessionMode: AVAudioSessionMode.spokenAudio,
-  avAudioSessionRouteSharingPolicy: AVAudioSessionRouteSharingPolicy.defaultPolicy,
-  avSetActiveOptions: AVAudioSessionSetActiveOptions.none,
-  androidAudioAttributes: const AndroidAudioAttributes(
-    contentType: AndroidAudioContentType.speech,
-    flags: AndroidAudioFlags.none,
-    usage: AndroidAudioUsage.voiceCommunication,
-  ),
-  androidAudioFocusGainType: AndroidAudioFocusGainType.gain,
-  androidWillPauseWhenDucked: true,
-));
-```
+
 
 Note that iOS (and hence this plugin) provides a single audio session to your app which is shared by all of the different audio plugins you use. If your app uses multiple audio plugins, e.g. any combination of audio recording, text to speech, background audio, audio playing, or speech recognition, then it is possible that those plugins may internally overwrite each other's choice of these global system audio settings, including the ones you set via this plugin. Therefore, it is recommended that you apply your own preferred configuration using audio_session after all other audio plugins have loaded. You may consider asking the developer of each audio plugin you use to provide an option to not overwrite these global settings and allow them be managed externally.
 

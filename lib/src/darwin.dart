@@ -281,7 +281,6 @@ enum AVAudioSessionCategory {
   soloAmbient,
   playback,
   record,
-  playAndRecord,
   multiRoute,
 }
 
