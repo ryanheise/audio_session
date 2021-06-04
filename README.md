@@ -137,3 +137,32 @@ audioSession.configurationStream
 All numeric values encoded in `AndroidAudioAttributes.toJson()` correspond exactly to the Android platform constants.
 
 `configurationStream` will always emit the latest configuration as the first event upon subscribing, and so the above code will handle both the initial configuration choice and subsequent changes to it throughout the life of the app.
+
+## iOS setup
+
+This plugin contains APIs for accessing all of your phone's audio hardware.
+
+When submitting your app to the app store, it will detect that this plugin contains microphone-related APIs and will require you to add an `NSMicrophoneUsageDescription` key to your `Info.plist` file explaining why your app needs microphone access.
+
+If your app does indeed use the microphone, you can add this key to your `Info.plist` as follows:
+
+```xml
+<key>NSMicrophoneUsageDescription</key>
+<string>... explain why the app uses the microphone here ...</string>
+```
+
+But if your app doesn't use the microphone, you can pass a build option to this plugin to "compile out" microphone code so that the app store won't ask for the above usage description. To do so, edit your `ios/Podfile` as follows:
+
+```ruby
+post_install do |installer|
+  installer.pods_project.targets.each do |target|
+    flutter_additional_ios_build_settings(target)
+    
+    # ADD THE NEXT SECTION
+    target.build_configurations.each do |config|
+      config.build_settings['GCC_PREPROCESSOR_DEFINITIONS'] ||= ['$(inherited)', 'MICROPHONE_ENABLED=0']
+    end
+    
+  end
+end
+```

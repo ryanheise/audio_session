@@ -211,13 +211,21 @@ static NSHashTable<DarwinAudioSession *> *sessions = nil;
 }
 
 - (void)getRecordPermission:(NSArray *)args result:(FlutterResult)result {
+#if MICROPHONE_ENABLED
     result([self recordPermissionToFlutter:[[AVAudioSession sharedInstance] recordPermission]]);
+#else
+    result(FlutterMethodNotImplemented);
+#endif
 }
 
 - (void)requestRecordPermission:(NSArray *)args result:(FlutterResult)result {
+#if MICROPHONE_ENABLED
     [[AVAudioSession sharedInstance] requestRecordPermission:^(BOOL granted) {
         result(@(granted));
     }];
+#else
+    result(FlutterMethodNotImplemented);
+#endif
 }
 
 - (void)isOtherAudioPlaying:(NSArray *)args result:(FlutterResult)result {
@@ -334,7 +342,6 @@ static NSHashTable<DarwinAudioSession *> *sessions = nil;
         @"id": dataSource.dataSourceID,
         @"name": dataSource.dataSourceName,
         @"location": [self encodeLocation:dataSource.location],
-        //
         @"orientation": [self encodeOrientation:dataSource.orientation],
         @"selectedPolarPattern": [self encodePolarPattern:dataSource.selectedPolarPattern],
         @"supportedPolarPatterns": supportedPolarPatterns,
@@ -468,8 +475,10 @@ static NSHashTable<DarwinAudioSession *> *sessions = nil;
             case 0: category = AVAudioSessionCategoryAmbient; break;
             case 1: category = AVAudioSessionCategorySoloAmbient; break;
             case 2: category = AVAudioSessionCategoryPlayback; break;
+#if MICROPHONE_ENABLED
             case 3: category = AVAudioSessionCategoryRecord; break;
             case 4: category = AVAudioSessionCategoryPlayAndRecord; break;
+#endif
             case 5: category = AVAudioSessionCategoryMultiRoute; break;
         }
     }
@@ -480,8 +489,10 @@ static NSHashTable<DarwinAudioSession *> *sessions = nil;
     if (category == AVAudioSessionCategoryAmbient) return @(0);
     else if (category == AVAudioSessionCategorySoloAmbient) return @(1);
     else if (category == AVAudioSessionCategoryPlayback) return @(2);
+#if MICROPHONE_ENABLED
     else if (category == AVAudioSessionCategoryRecord) return @(3);
     else if (category == AVAudioSessionCategoryPlayAndRecord) return @(4);
+#endif
     else return @(5);
 }
 
@@ -572,6 +583,7 @@ static NSHashTable<DarwinAudioSession *> *sessions = nil;
     }
 }
 
+#if MICROPHONE_ENABLED
 - (AVAudioSessionRecordPermission)flutterToRecordPermission:(NSNumber *)recordPermissionIndex {
     AVAudioSessionRecordPermission permission = AVAudioSessionRecordPermissionUndetermined;
     if (recordPermissionIndex != (id)[NSNull null]) {
@@ -590,6 +602,7 @@ static NSHashTable<DarwinAudioSession *> *sessions = nil;
     else if (recordPermission == AVAudioSessionRecordPermissionGranted) return @(2);
     else return @(0);
 }
+#endif
 
 - (NSObject *)promptStyleToFlutter:(AVAudioSessionPromptStyle)promptStyle {
     if (promptStyle == AVAudioSessionPromptStyleNone) return @(0);
