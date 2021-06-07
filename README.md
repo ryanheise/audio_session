@@ -160,7 +160,10 @@ post_install do |installer|
     
     # ADD THE NEXT SECTION
     target.build_configurations.each do |config|
-      config.build_settings['GCC_PREPROCESSOR_DEFINITIONS'] ||= ['$(inherited)', 'MICROPHONE_ENABLED=0']
+      config.build_settings['GCC_PREPROCESSOR_DEFINITIONS'] ||= [
+        '$(inherited)',
+        'AUDIO_SESSION_MICROPHONE=0'
+      ]
     end
     
   end

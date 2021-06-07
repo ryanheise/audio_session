@@ -211,7 +211,7 @@ static NSHashTable<DarwinAudioSession *> *sessions = nil;
 }
 
 - (void)getRecordPermission:(NSArray *)args result:(FlutterResult)result {
-#if MICROPHONE_ENABLED
+#if AUDIO_SESSION_MICROPHONE
     result([self recordPermissionToFlutter:[[AVAudioSession sharedInstance] recordPermission]]);
 #else
     result(FlutterMethodNotImplemented);
@@ -219,7 +219,7 @@ static NSHashTable<DarwinAudioSession *> *sessions = nil;
 }
 
 - (void)requestRecordPermission:(NSArray *)args result:(FlutterResult)result {
-#if MICROPHONE_ENABLED
+#if AUDIO_SESSION_MICROPHONE
     [[AVAudioSession sharedInstance] requestRecordPermission:^(BOOL granted) {
         result(@(granted));
     }];
@@ -475,7 +475,7 @@ static NSHashTable<DarwinAudioSession *> *sessions = nil;
             case 0: category = AVAudioSessionCategoryAmbient; break;
             case 1: category = AVAudioSessionCategorySoloAmbient; break;
             case 2: category = AVAudioSessionCategoryPlayback; break;
-#if MICROPHONE_ENABLED
+#if AUDIO_SESSION_MICROPHONE
             case 3: category = AVAudioSessionCategoryRecord; break;
             case 4: category = AVAudioSessionCategoryPlayAndRecord; break;
 #endif
@@ -489,7 +489,7 @@ static NSHashTable<DarwinAudioSession *> *sessions = nil;
     if (category == AVAudioSessionCategoryAmbient) return @(0);
     else if (category == AVAudioSessionCategorySoloAmbient) return @(1);
     else if (category == AVAudioSessionCategoryPlayback) return @(2);
-#if MICROPHONE_ENABLED
+#if AUDIO_SESSION_MICROPHONE
     else if (category == AVAudioSessionCategoryRecord) return @(3);
     else if (category == AVAudioSessionCategoryPlayAndRecord) return @(4);
 #endif
@@ -583,7 +583,7 @@ static NSHashTable<DarwinAudioSession *> *sessions = nil;
     }
 }
 
-#if MICROPHONE_ENABLED
+#if AUDIO_SESSION_MICROPHONE
 - (AVAudioSessionRecordPermission)flutterToRecordPermission:(NSNumber *)recordPermissionIndex {
     AVAudioSessionRecordPermission permission = AVAudioSessionRecordPermissionUndetermined;
     if (recordPermissionIndex != (id)[NSNull null]) {

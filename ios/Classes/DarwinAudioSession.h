@@ -1,7 +1,7 @@
 #import <Flutter/Flutter.h>
 
-#ifndef MICROPHONE_ENABLED
-    #define MICROPHONE_ENABLED=1
+#ifndef AUDIO_SESSION_MICROPHONE
+    #define AUDIO_SESSION_MICROPHONE 1
 #endif
 
 @interface DarwinAudioSession : NSObject
