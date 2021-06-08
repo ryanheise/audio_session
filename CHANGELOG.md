@@ -1,3 +1,10 @@
+## 0.1.3
+
+* Mostly complete AndroidAudioManager API.
+* Mostly complete AVAudioSession API.
+* Unified Android/iOS API for device discovery.
+* Option to remove iOS microphone code at compile time.
+
 ## 0.1.2
 
 * Support rxdart 0.27.0.
