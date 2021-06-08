@@ -4,6 +4,8 @@ import 'package:audio_session/src/util.dart';
 import 'package:flutter/services.dart';
 import 'package:rxdart/rxdart.dart';
 
+/// If you test any feature listed as UNTESTED, consider sharing whether it
+/// works on GitHub.
 class AndroidAudioManager {
   static const MethodChannel _channel =
       const MethodChannel('com.ryanheise.android_audio_manager');
@@ -56,27 +58,6 @@ class AndroidAudioManager {
     });
   }
 
-  List<AndroidAudioDeviceInfo> _decodeAudioDevices(dynamic rawList) {
-    return (rawList as List<dynamic>).map(_decodeAudioDevice).toList();
-  }
-
-  AndroidAudioDeviceInfo _decodeAudioDevice(dynamic raw) {
-    return AndroidAudioDeviceInfo(
-      id: raw['id'],
-      productName: raw['productName'],
-      address: raw['address'],
-      isSource: raw['isSource'],
-      isSink: raw['isSink'],
-      sampleRates: (raw['sampleRates'] as List<dynamic>).cast<int>(),
-      channelMasks: (raw['channelMasks'] as List<dynamic>).cast<int>(),
-      channelIndexMasks:
-          (raw['channelIndexMasks'] as List<dynamic>).cast<int>(),
-      channelCounts: (raw['channelCounts'] as List<dynamic>).cast<int>(),
-      encodings: (raw['encodings'] as List<dynamic>).cast<int>(),
-      type: decodeEnum(AndroidAudioDeviceType.values, raw['type']),
-    );
-  }
-
   Stream<void> get becomingNoisyEventStream =>
       _becomingNoisyEventSubject.stream;
 
@@ -90,27 +71,30 @@ class AndroidAudioManager {
     return (await _channel.invokeMethod<bool>('abandonAudioFocus'))!;
   }
 
-  /// Requires API level 19
+  /// (UNTESTED) Requires API level 19
   Future<void> dispatchMediaKeyEvent(AndroidKeyEvent keyEvent) async {
     await _channel.invokeMethod('dispatchMediaKeyEvent', [keyEvent._toMap()]);
   }
 
-  /// Requires API level 21
+  /// (UNTESTED) Requires API level 21
   Future<bool> isVolumeFixed() async {
     return (await _channel.invokeMethod<bool>('isVolumeFixed'))!;
   }
 
+  /// (UNTESTED)
   Future<void> adjustStreamVolume(AndroidStreamType streamType,
       AndroidAudioAdjustment direction, AndroidAudioVolumeFlags flags) async {
     await _channel.invokeMethod(
         'adjustStreamVolume', [streamType.index, direction.index, flags.value]);
   }
 
+  /// (UNTESTED)
   Future<void> adjustVolume(
       AndroidAudioAdjustment direction, AndroidAudioVolumeFlags flags) async {
     await _channel.invokeMethod('adjustVolume', [direction.index, flags.value]);
   }
 
+  /// (UNTESTED)
   Future<void> adjustSuggestedStreamVolume(
       AndroidAudioAdjustment direction,
       AndroidStreamType? suggestedStreamType,
@@ -123,29 +107,32 @@ class AndroidAudioManager {
     ]);
   }
 
+  /// (UNTESTED)
   Future<AndroidRingerMode> getRingerMode() async {
     return decodeEnum(AndroidRingerMode.values,
         (await _channel.invokeMethod<int>('getRingerMode'))!,
         defaultIndex: 2);
   }
 
+  /// (UNTESTED)
   Future<int> getStreamMaxVolume(AndroidStreamType streamType) async {
     return (await _channel
         .invokeMethod<int>('getStreamMaxVolume', [streamType.index]))!;
   }
 
-  /// Requires API level 28
+  /// (UNTESTED) Requires API level 28
   Future<int> getStreamMinVolume(AndroidStreamType streamType) async {
     return (await _channel
         .invokeMethod<int>('getStreamMinVolume', [streamType.index]))!;
   }
 
+  /// (UNTESTED)
   Future<int> getStreamVolume(AndroidStreamType streamType) async {
     return (await _channel
         .invokeMethod<int>('getStreamVolume', [streamType.index]))!;
   }
 
-  /// Requires API level 28
+  /// (UNTESTED) Requires API level 28
   Future<double> getStreamVolumeDb(AndroidStreamType streamType, int index,
       AndroidAudioDeviceType deviceType) async {
     return (await _channel.invokeMethod<double>('getStreamVolumeDb', [
@@ -155,38 +142,42 @@ class AndroidAudioManager {
     ]))!;
   }
 
+  /// (UNTESTED)
   Future<void> setRingerMode(AndroidRingerMode ringerMode) async {
     await _channel.invokeMethod<int>('setRingerMode', [ringerMode.index]);
   }
 
+  /// (UNTESTED)
   Future<void> setStreamVolume(AndroidStreamType streamType, int index,
       AndroidAudioVolumeFlags flags) async {
     await _channel.invokeMethod(
         'setStreamVolume', [streamType.index, index, flags.value]);
   }
 
-  /// Requires API level 23
+  /// (UNTESTED) Requires API level 23
   Future<bool> isStreamMute(AndroidStreamType streamType) async {
     return (await _channel
         .invokeMethod<bool>('isStreamMute', [streamType.index]))!;
   }
 
+  /// (UNTESTED)
   Future<void> setSpeakerphoneOn(bool enabled) async {
     await _channel.invokeMethod<bool>('setSpeakerphoneOn', [enabled]);
   }
 
+  /// (UNTESTED)
   Future<bool> isSpeakerphoneOn() async {
     return (await _channel.invokeMethod<bool>('isSpeakerphoneOn'))!;
   }
 
-  /// Requires API level 29
+  /// (UNTESTED) Requires API level 29
   Future<void> setAllowedCapturePolicy(
       AndroidAudioCapturePolicy capturePolicy) async {
     await _channel
         .invokeMethod<bool>('setAllowedCapturePolicy', [capturePolicy.index]);
   }
 
-  /// Requires API level 29
+  /// (UNTESTED) Requires API level 29
   Future<AndroidAudioCapturePolicy> getAllowedCapturePolicy() async {
     return decodeMapEnum(AndroidAudioCapturePolicy.values,
         (await _channel.invokeMethod<int>('getAllowedCapturePolicy'))!,
@@ -195,55 +186,66 @@ class AndroidAudioManager {
 
   // TODO: isOffloadedPlaybackSupported
 
+  /// (UNTESTED)
   Future<bool> isBluetoothScoAvailableOffCall() async {
     return (await _channel
         .invokeMethod<bool>('isBluetoothScoAvailableOffCall'))!;
   }
 
+  /// (UNTESTED)
   Future<void> startBluetoothSco() async {
     await _channel.invokeMethod('startBluetoothSco');
   }
 
+  /// (UNTESTED)
   Future<void> stopBluetoothSco() async {
     await _channel.invokeMethod('stopBluetoothSco');
   }
 
+  /// (UNTESTED)
   Future<void> setBluetoothScoOn(bool enabled) async {
     await _channel.invokeMethod<bool>('setBluetoothScoOn', [enabled]);
   }
 
+  /// (UNTESTED)
   Future<bool> isBluetoothScoOn() async {
     return (await _channel.invokeMethod<bool>('isBluetoothScoOn'))!;
   }
 
+  /// (UNTESTED)
   Future<void> setMicrophoneMute(bool enabled) async {
     await _channel.invokeMethod<bool>('setMicrophoneMute', [enabled]);
   }
 
+  /// (UNTESTED)
   Future<bool> isMicrophoneMute() async {
     return (await _channel.invokeMethod<bool>('isMicrophoneMute'))!;
   }
 
+  /// (UNTESTED)
   Future<void> setMode(AndroidAudioHardwareMode mode) async {
     await _channel.invokeMethod('setMode', [mode.index]);
   }
 
+  /// (UNTESTED)
   Future<AndroidAudioHardwareMode> getMode() async {
     return decodeMapEnum(AndroidAudioHardwareMode.values,
         (await _channel.invokeMethod<int>('getMode'))!);
   }
 
+  /// (UNTESTED)
   Future<bool> isMusicActive() async {
     return (await _channel.invokeMethod<bool>('isMusicActive'))!;
   }
 
-  /// Requires API level 21
+  /// (UNTESTED) Requires API level 21
   Future<int> generateAudioSessionId() async {
     return (await _channel.invokeMethod<int>('generateAudioSessionId'))!;
   }
 
   // TODO?: AUDIO_SESSION_ID_GENERATE
 
+  /// (UNTESTED)
   Future<void> setParameters(Map<String, String> parameters) async {
     await _channel.invokeMethod(
         'setParameters',
@@ -252,6 +254,7 @@ class AndroidAudioManager {
             .join(';'));
   }
 
+  /// (UNTESTED)
   Future<Map<String, String>> getParameters(String keys) async {
     // What is the format of keys?
     return Map.fromEntries(
@@ -261,16 +264,19 @@ class AndroidAudioManager {
             .map((pair) => MapEntry(pair[0], pair[1])));
   }
 
+  /// (UNTESTED)
   Future<void> playSoundEffect(AndroidSoundEffectType effectType,
       {double? volume}) async {
     // TODO: support variant with userId parameter.
     await _channel.invokeMethod('playSoundEffect', [effectType.index, volume]);
   }
 
+  /// (UNTESTED)
   Future<void> loadSoundEffects() async {
     await _channel.invokeMethod('loadSoundEffects');
   }
 
+  /// (UNTESTED)
   Future<void> unloadSoundEffects() async {
     await _channel.invokeMethod('unloadSoundEffects');
   }
@@ -280,39 +286,39 @@ class AndroidAudioManager {
   // TODO: (un)registerAudioRecordingCallback
   // TODO: getActiveRecordingConfigurations
 
-  /// Requires API level 17
+  /// (UNTESTED) Requires API level 17
   Future<int?> getOutputSampleRate() =>
       _getIntProperty('android.media.property.OUTPUT_SAMPLE_RATE');
 
-  /// Requires API level 17
+  /// (UNTESTED) Requires API level 17
   Future<int?> getOutputFramesPerBuffer() =>
       _getIntProperty('android.media.property.OUTPUT_FRAMES_PER_BUFFER');
 
-  /// Requires API level 17
+  /// (UNTESTED) Requires API level 17
   Future<bool> getSupportMicNearUltrasound() =>
       _getBoolProperty('android.media.property.SUPPORT_MIC_NEAR_ULTRASOUND');
 
-  /// Requires API level 17
+  /// (UNTESTED) Requires API level 17
   Future<bool> getSupportSpeakerNearUltrasound() => _getBoolProperty(
       'android.media.property.SUPPORT_SPEAKER_NEAR_ULTRASOUND');
 
-  /// Requires API level 17
+  /// (UNTESTED) Requires API level 17
   Future<bool> getSupportAudioSourceUnprocessed() => _getBoolProperty(
       'android.media.property.SUPPORT_AUDIO_SOURCE_UNPROCESSED');
 
-  /// Requires API level 17
+  /// (UNTESTED) Requires API level 17
   Future<bool> _getBoolProperty(String key) async {
     final s = await _getProperty(key);
     return s == 'true';
   }
 
-  /// Requires API level 17
+  /// (UNTESTED) Requires API level 17
   Future<int?> _getIntProperty(String key) async {
     final s = await _getProperty(key);
     return s != null ? int.parse(s) : null;
   }
 
-  /// Requires API level 17
+  /// (UNTESTED) Requires API level 17
   Future<String?> _getProperty(String key) async {
     return await _channel.invokeMethod<String>('getProperty', [key]);
   }
@@ -324,7 +330,7 @@ class AndroidAudioManager {
         (await _channel.invokeMethod<dynamic>('getDevices', [flags.value]))!);
   }
 
-  /// Requires API level 28
+  /// (UNTESTED) Requires API level 28
   Future<List<AndroidMicrophoneInfo>> getMicrophones() async {
     return ((await _channel.invokeListMethod<Map<String, dynamic>>(
             'getMicrophones')) as List<dynamic>)
@@ -354,13 +360,34 @@ class AndroidAudioManager {
         .toList();
   }
 
-  /// Requires API level 29
+  /// (UNTESTED) Requires API level 29
   Future<bool> isHapticPlaybackSupported() async {
     return (await _channel.invokeMethod<bool>('isHapticPlaybackSupported'))!;
   }
 
   void close() {
     _becomingNoisyEventSubject.close();
+  }
+
+  List<AndroidAudioDeviceInfo> _decodeAudioDevices(dynamic rawList) {
+    return (rawList as List<dynamic>).map(_decodeAudioDevice).toList();
+  }
+
+  AndroidAudioDeviceInfo _decodeAudioDevice(dynamic raw) {
+    return AndroidAudioDeviceInfo(
+      id: raw['id'],
+      productName: raw['productName'],
+      address: raw['address'],
+      isSource: raw['isSource'],
+      isSink: raw['isSink'],
+      sampleRates: (raw['sampleRates'] as List<dynamic>).cast<int>(),
+      channelMasks: (raw['channelMasks'] as List<dynamic>).cast<int>(),
+      channelIndexMasks:
+          (raw['channelIndexMasks'] as List<dynamic>).cast<int>(),
+      channelCounts: (raw['channelCounts'] as List<dynamic>).cast<int>(),
+      encodings: (raw['encodings'] as List<dynamic>).cast<int>(),
+      type: decodeEnum(AndroidAudioDeviceType.values, raw['type']),
+    );
   }
 }
 

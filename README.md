@@ -1,6 +1,6 @@
 # audio_session
 
-This plugin configures your app's audio category and configures how your app interacts with other audio apps.
+This plugin informs the operating system of the nature of your audio app (e.g. game, media player, assistant, etc.) and how your app will handle and initiate audio interruptions (e.g. phone call interruptions). It also provides access to all of the capabilities of AVAudioSession on iOS and AudioManager on Android, providing for discoverability and configuration of audio hardware.
 
 Audio apps often have unique requirements. For example, when a navigator app speaks driving instructions, a music player should duck its audio while a podcast player should pause its audio. Depending on which one of these three apps you are building, you will need to configure your app's audio settings and callbacks to appropriately handle these interactions.
 
@@ -97,6 +97,15 @@ Observe unplugged headphones:
 ```dart
 session.becomingNoisyEventStream.listen((_) {
   // The user unplugged the headphones, so we should pause or lower the volume.
+});
+```
+
+Observe when devices are added or removed:
+
+```dart
+session.devicesChangedEventStream.listen((event) {
+  print('Devices added:   ${event.devicesAdded}');
+  print('Devices removed: ${event.devicesRemoved}');
 });
 ```
 

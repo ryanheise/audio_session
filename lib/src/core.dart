@@ -146,6 +146,139 @@ class AudioSession {
     });
   }
 
+  /// The current configuration.
+  AudioSessionConfiguration? get configuration => _configuration;
+
+  /// A stream broadcasting the current configuration.
+  Stream<AudioSessionConfiguration> get configurationStream =>
+      _configurationSubject.stream;
+
+  /// Whether the audio session is configured.
+  bool get isConfigured => _configuration != null;
+
+  /// The configured [AndroidAudioAttributes].
+  AndroidAudioAttributes? get androidAudioAttributes =>
+      _configuration?.androidAudioAttributes;
+
+  /// The configured [AndroidAudioFocusGainType].
+  AndroidAudioFocusGainType? get androidAudioFocusGainType =>
+      _configuration?.androidAudioFocusGainType;
+
+  /// A stream of [AudioInterruptionEvent]s.
+  Stream<AudioInterruptionEvent> get interruptionEventStream =>
+      _interruptionEventSubject.stream;
+
+  /// A stream of events that occur when audio becomes noisy (e.g. due to
+  /// unplugging the headphones).
+  Stream<void> get becomingNoisyEventStream =>
+      _becomingNoisyEventSubject.stream;
+
+  /// A stream emitting events whenever devices are added or removed to the set
+  /// of available devices.
+  Stream<AudioDevicesChangedEvent> get devicesChangedEventStream =>
+      _devicesChangedEventSubject.stream;
+
+  /// A stream emitting the set of connected devices whenever there is a change.
+  Stream<Set<AudioDevice>> get devicesStream => _devicesSubject.stream;
+
+  /// Configures the audio session. It is useful to call this method during
+  /// your app's initialisation before you start playing or recording any
+  /// audio. However, you may also call this method afterwards to change the
+  /// current configuration at any time.
+  Future<void> configure(AudioSessionConfiguration configuration) async {
+    await _avAudioSession?.setCategory(
+      configuration.avAudioSessionCategory,
+      configuration.avAudioSessionCategoryOptions,
+      configuration.avAudioSessionMode,
+      configuration.avAudioSessionRouteSharingPolicy,
+    );
+    _configuration = configuration;
+    await _channel.invokeMethod('setConfiguration', [configuration.toJson()]);
+  }
+
+  /// Activates or deactivates this audio session. Typically an audio plugin
+  /// should call this method when it begins playing audio. If the audio
+  /// session is not yet configured at the time this is called, the
+  /// [fallbackConfiguration] will be set. If any of
+  /// [avAudioSessionSetActiveOptions], [androidAudioFocusGainType],
+  /// [androidAudioAttributesttributes] and [androidWillPauseWhenDucked] are
+  /// speficied, they will override the configuration.
+  Future<bool> setActive(
+    bool active, {
+    AVAudioSessionSetActiveOptions? avAudioSessionSetActiveOptions,
+    AndroidAudioFocusGainType? androidAudioFocusGainType,
+    AndroidAudioAttributes? androidAudioAttributes,
+    bool? androidWillPauseWhenDucked,
+    AudioSessionConfiguration fallbackConfiguration =
+        const AudioSessionConfiguration.music(),
+  }) async {
+    final configuration = _configuration ?? fallbackConfiguration;
+    if (!isConfigured) {
+      await configure(fallbackConfiguration);
+    }
+    if (!kIsWeb && Platform.isIOS) {
+      return await _avAudioSession!.setActive(active,
+          avOptions: avAudioSessionSetActiveOptions ??
+              configuration.avAudioSessionSetActiveOptions);
+    } else if (!kIsWeb && Platform.isAndroid) {
+      if (active) {
+        // Activate
+        final pauseWhenDucked =
+            configuration.androidWillPauseWhenDucked ?? false;
+        var ducked = false;
+        final success = await _androidAudioManager!
+            .requestAudioFocus(AndroidAudioFocusRequest(
+          gainType: androidAudioFocusGainType ??
+              configuration.androidAudioFocusGainType,
+          audioAttributes:
+              androidAudioAttributes ?? configuration.androidAudioAttributes,
+          willPauseWhenDucked: androidWillPauseWhenDucked ??
+              configuration.androidWillPauseWhenDucked,
+          onAudioFocusChanged: (focus) {
+            print("core onAudioFocusChanged");
+            switch (focus) {
+              case AndroidAudioFocus.gain:
+                _interruptionEventSubject.add(AudioInterruptionEvent(
+                    false,
+                    ducked
+                        ? AudioInterruptionType.duck
+                        : AudioInterruptionType.pause));
+                ducked = false;
+                break;
+              case AndroidAudioFocus.loss:
+                _interruptionEventSubject.add(AudioInterruptionEvent(
+                    true, AudioInterruptionType.unknown));
+                ducked = false;
+                break;
+              case AndroidAudioFocus.lossTransient:
+                _interruptionEventSubject.add(
+                    AudioInterruptionEvent(true, AudioInterruptionType.pause));
+                ducked = false;
+                break;
+              case AndroidAudioFocus.lossTransientCanDuck:
+                // We enforce the "will pause when ducked" configuration by
+                // sending the app a pause event instead of a duck event.
+                _interruptionEventSubject.add(AudioInterruptionEvent(
+                    true,
+                    pauseWhenDucked
+                        ? AudioInterruptionType.pause
+                        : AudioInterruptionType.duck));
+                if (!pauseWhenDucked) ducked = true;
+                break;
+            }
+          },
+        ));
+        return success;
+      } else {
+        // Deactivate
+        final success = await _androidAudioManager!.abandonAudioFocus();
+        return success;
+      }
+    }
+    return true;
+  }
+
+  /// Completes with a list of available audio devices.
   Future<Set<AudioDevice>> getDevices(
       {bool includeInputs = true, bool includeOutputs = true}) async {
     final devices = <AudioDevice>{};
@@ -308,135 +441,6 @@ class AudioSession {
       isOutput: device.isSink,
       type: _androidType2type(device.type),
     );
-  }
-
-  /// The current configuration.
-  AudioSessionConfiguration? get configuration => _configuration;
-
-  /// A stream broadcasting the current configuration.
-  Stream<AudioSessionConfiguration> get configurationStream =>
-      _configurationSubject.stream;
-
-  /// Whether the audio session is configured.
-  bool get isConfigured => _configuration != null;
-
-  /// The configured [AndroidAudioAttributes].
-  AndroidAudioAttributes? get androidAudioAttributes =>
-      _configuration?.androidAudioAttributes;
-
-  /// The configured [AndroidAudioFocusGainType].
-  AndroidAudioFocusGainType? get androidAudioFocusGainType =>
-      _configuration?.androidAudioFocusGainType;
-
-  /// A stream of [AudioInterruptionEvent]s.
-  Stream<AudioInterruptionEvent> get interruptionEventStream =>
-      _interruptionEventSubject.stream;
-
-  /// A stream of events that occur when audio becomes noisy (e.g. due to
-  /// unplugging the headphones).
-  Stream<void> get becomingNoisyEventStream =>
-      _becomingNoisyEventSubject.stream;
-
-  Stream<AudioDevicesChangedEvent> get devicesChangedEventStream =>
-      _devicesChangedEventSubject.stream;
-
-  Stream<Set<AudioDevice>> get devicesStream => _devicesSubject.stream;
-
-  /// Configures the audio session. It is useful to call this method during
-  /// your app's initialisation before you start playing or recording any
-  /// audio. However, you may also call this method afterwards to change the
-  /// current configuration at any time.
-  Future<void> configure(AudioSessionConfiguration configuration) async {
-    await _avAudioSession?.setCategory(
-      configuration.avAudioSessionCategory,
-      configuration.avAudioSessionCategoryOptions,
-      configuration.avAudioSessionMode,
-      configuration.avAudioSessionRouteSharingPolicy,
-    );
-    _configuration = configuration;
-    await _channel.invokeMethod('setConfiguration', [configuration.toJson()]);
-  }
-
-  /// Activates or deactivates this audio session. Typically an audio plugin
-  /// should call this method when it begins playing audio. If the audio
-  /// session is not yet configured at the time this is called, the
-  /// [fallbackConfiguration] will be set. If any of
-  /// [avAudioSessionSetActiveOptions], [androidAudioFocusGainType],
-  /// [androidAudioAttributesttributes] and [androidWillPauseWhenDucked] are
-  /// speficied, they will override the configuration.
-  Future<bool> setActive(
-    bool active, {
-    AVAudioSessionSetActiveOptions? avAudioSessionSetActiveOptions,
-    AndroidAudioFocusGainType? androidAudioFocusGainType,
-    AndroidAudioAttributes? androidAudioAttributes,
-    bool? androidWillPauseWhenDucked,
-    AudioSessionConfiguration fallbackConfiguration =
-        const AudioSessionConfiguration.music(),
-  }) async {
-    final configuration = _configuration ?? fallbackConfiguration;
-    if (!isConfigured) {
-      await configure(fallbackConfiguration);
-    }
-    if (!kIsWeb && Platform.isIOS) {
-      return await _avAudioSession!.setActive(active,
-          avOptions: avAudioSessionSetActiveOptions ??
-              configuration.avAudioSessionSetActiveOptions);
-    } else if (!kIsWeb && Platform.isAndroid) {
-      if (active) {
-        // Activate
-        final pauseWhenDucked =
-            configuration.androidWillPauseWhenDucked ?? false;
-        var ducked = false;
-        final success = await _androidAudioManager!
-            .requestAudioFocus(AndroidAudioFocusRequest(
-          gainType: androidAudioFocusGainType ??
-              configuration.androidAudioFocusGainType,
-          audioAttributes:
-              androidAudioAttributes ?? configuration.androidAudioAttributes,
-          willPauseWhenDucked: androidWillPauseWhenDucked ??
-              configuration.androidWillPauseWhenDucked,
-          onAudioFocusChanged: (focus) {
-            print("core onAudioFocusChanged");
-            switch (focus) {
-              case AndroidAudioFocus.gain:
-                _interruptionEventSubject.add(AudioInterruptionEvent(
-                    false,
-                    ducked
-                        ? AudioInterruptionType.duck
-                        : AudioInterruptionType.pause));
-                ducked = false;
-                break;
-              case AndroidAudioFocus.loss:
-                _interruptionEventSubject.add(AudioInterruptionEvent(
-                    true, AudioInterruptionType.unknown));
-                ducked = false;
-                break;
-              case AndroidAudioFocus.lossTransient:
-                _interruptionEventSubject.add(
-                    AudioInterruptionEvent(true, AudioInterruptionType.pause));
-                ducked = false;
-                break;
-              case AndroidAudioFocus.lossTransientCanDuck:
-                // We enforce the "will pause when ducked" configuration by
-                // sending the app a pause event instead of a duck event.
-                _interruptionEventSubject.add(AudioInterruptionEvent(
-                    true,
-                    pauseWhenDucked
-                        ? AudioInterruptionType.pause
-                        : AudioInterruptionType.duck));
-                if (!pauseWhenDucked) ducked = true;
-                break;
-            }
-          },
-        ));
-        return success;
-      } else {
-        // Deactivate
-        final success = await _androidAudioManager!.abandonAudioFocus();
-        return success;
-      }
-    }
-    return true;
   }
 }
 
@@ -609,8 +613,12 @@ enum AudioInterruptionType {
   unknown
 }
 
+/// An event capturing the addition or removal of connected devices.
 class AudioDevicesChangedEvent {
+  /// The audio devices just made available.
   final Set<AudioDevice> devicesAdded;
+
+  /// The audio devices just made unavailable.
   final Set<AudioDevice> devicesRemoved;
 
   AudioDevicesChangedEvent({
@@ -619,11 +627,22 @@ class AudioDevicesChangedEvent {
   });
 }
 
+/// Information about an audio device. If you require platform specific device
+/// details, use [AVAudioSession] and [AndroidAudioManager] directly.
 class AudioDevice {
+  /// The unique ID of the device.
   final String id;
+
+  /// The name of the device.
   final String name;
+
+  /// Whether this device is an input.
   final bool isInput;
+
+  /// Whether this device is an output.
   final bool isOutput;
+
+  /// The type of this device.
   final AudioDeviceType type;
 
   AudioDevice({
@@ -645,40 +664,109 @@ class AudioDevice {
       'AudioDevice(id:$id,name:$name,isInput:$isInput,isOutput:$isOutput,type:$type)';
 }
 
+/// An enumeration of the different audio device types.
 @experimental
 enum AudioDeviceType {
+  /// Unknown type.
   unknown,
+
+  /// The phone earpiece used for listening to calls.
   builtInEarpiece,
+
+  /// The built-in speaker.
   builtInSpeaker,
+
+  /// A wired headset with both microphone and earphones.
   wiredHeadset,
+
+  /// Wired headphones.
   wiredHeadphones,
+
+  /// The microphone on a headset.
   headsetMic,
+
+  /// An analog line connection.
   lineAnalog,
+
+  /// A digital line connection.
   lineDigital,
+
+  /// A bluetooth device typically used for telephony.
   bluetoothSco,
+
+  /// A bluetooth device supporting the A2DP profile.
   bluetoothA2dp,
+
+  /// An HDMI connection.
   hdmi,
+
+  /// The audio return channel of an HDMI connection.
   hdmiArc,
+
+  /// A USB audio device.
   usbAudio,
+
+  /// A device associated with a dock.
   dock,
+
+  /// An FM transmission device.
   fm,
+
+  /// The built-in microphone.
   builtInMic,
+
+  /// An FM receiver device.
   fmTuner,
+
+  /// A TV receiver device.
   tvTuner,
+
+  /// A transmitter for the telephony network.
   telephony,
+
+  /// An auxiliary line connector.
   auxLine,
+
+  /// A device connected over IP.
   ip,
+
+  /// A device used to communicate with external audio systems.
   bus,
+
+  /// A hearing aid.
   hearingAid,
+
+  /// An AirPlay device.
   airPlay,
+
+  /// A Bluetooth LE device.
   bluetoothLe,
+
+  /// An Audio Video Bridging device.
   avb,
+
+  /// A DisplayPort device.
   displayPort,
+
+  /// A Car Audio connection.
   carAudio,
+
+  /// A FireWire device.
   fireWire,
+
+  /// A PCI device.
   pci,
+
+  /// A Thunderbolt device.
   thunderbolt,
+
+  /// A connection not corresponding to a physical device.
   virtual,
+
+  /// A built-in speaker used for outputting sounds like notifications and
+  /// alarms.
   builtInSpeakerSafe,
+
+  /// Android internal
   remoteSubmix,
 }

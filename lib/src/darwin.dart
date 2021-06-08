@@ -6,6 +6,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:rxdart/rxdart.dart';
 
+/// If you test any feature listed as UNTESTED, consider sharing whether it
+/// works on GitHub.
 class AVAudioSession {
   static final MethodChannel _channel =
       const MethodChannel('com.ryanheise.av_audio_session');
@@ -66,16 +68,20 @@ class AVAudioSession {
   Stream<AVAudioSessionRouteChange> get routeChangeStream =>
       _routeChangeSubject.stream;
 
+  /// (UNTESTED)
   Stream<AVAudioSessionSilenceSecondaryAudioHintType>
       get silenceSecondaryAudioHintStream =>
           _silenceSecondaryAudioHintSubject.stream;
 
+  /// (UNTESTED)
   Stream<void> get mediaServicesWereLostStream =>
       _mediaServicesWereLostSubject.stream;
 
+  /// (UNTESTED)
   Stream<void> get mediaServicesWereResetStream =>
       _mediaServicesWereResetSubject.stream;
 
+  /// (UNTESTED)
   Future<AVAudioSessionCategory> get category async {
     final index = (await (_channel.invokeMethod<int>('getCategory')))!;
     return decodeEnum(AVAudioSessionCategory.values, index);
@@ -90,30 +96,36 @@ class AVAudioSession {
       _channel.invokeMethod('setCategory',
           [category?.index, options?.value, mode?.index, policy?.index]);
 
+  /// (UNTESTED)
   Future<List<AVAudioSessionCategory>> get availableCategories async =>
       (await _channel.invokeMethod<List<dynamic>>('getAvailableCategories'))!
           .cast<int>()
           .map((index) => decodeEnum(AVAudioSessionCategory.values, index))
           .toList();
 
+  /// (UNTESTED)
   Future<AVAudioSessionCategoryOptions> get categoryOptions async {
     final value = (await (_channel.invokeMethod<int>('getCategoryOptions')))!;
     return AVAudioSessionCategoryOptions(value);
   }
 
+  /// (UNTESTED)
   Future<AVAudioSessionMode> get mode async {
     final index = (await (_channel.invokeMethod<int>('getMode')))!;
     return decodeEnum(AVAudioSessionMode.values, index);
   }
 
+  /// (UNTESTED)
   Future<void> setMode(AVAudioSessionMode mode) =>
       _channel.invokeMethod('setMode', [mode.index]);
 
+  /// (UNTESTED)
   Future<List<AVAudioSessionMode>> get availableModes async => (await _channel
           .invokeMethod<List<AVAudioSessionMode>>('getAvailableModes'))!
       .map((index) => decodeEnum(AVAudioSessionMode.values, index as int))
       .toList();
 
+  /// (UNTESTED)
   Future<AVAudioSessionRouteSharingPolicy?> get routeSharingPolicy async {
     // TODO: Use this code without the '?' once a Dart bug is fixed.
     // (similar instances occur elsewhere)
@@ -129,28 +141,35 @@ class AVAudioSession {
       (await _channel
           .invokeMethod<bool>('setActive', [active, avOptions?.value]))!;
 
+  /// (UNTESTED)
   Future<AVAudioSessionRecordPermission> get recordPermission async {
     final index = (await (_channel.invokeMethod<int>('getRecordPermission')))!;
     return decodeEnum(AVAudioSessionRecordPermission.values, index);
   }
 
+  /// (UNTESTED)
   Future<bool> requestRecordPermission() async =>
       (await _channel.invokeMethod<bool>('requestRecordPermission'))!;
 
+  /// (UNTESTED)
   Future<bool> get isOtherAudioPlaying async =>
       (await _channel.invokeMethod<bool>('isOtherAudioPlaying'))!;
 
+  /// (UNTESTED)
   Future<bool> get secondaryAudioShouldBeSilencedHint async => (await _channel
       .invokeMethod<bool>('getSecondaryAudioShouldBeSilencedHint'))!;
 
+  /// (UNTESTED)
   Future<bool> get allowHapticsAndSystemSoundsDuringRecording async =>
       (await _channel.invokeMethod<bool>(
           'getAllowHapticsAndSystemSoundsDuringRecording'))!;
 
+  /// (UNTESTED)
   Future<void> setAllowHapticsAndSystemSoundsDuringRecording(bool allow) =>
       _channel.invokeMethod(
           "setAllowHapticsAndSystemSoundsDuringRecording", [allow]);
 
+  /// (UNTESTED)
   Future<AVAudioSessionPromptStyle?> get promptStyle async {
     // TODO: Use this code without the '?' once a Dart bug is fixed.
     // (similar instances occur elsewhere)
@@ -177,6 +196,7 @@ class AVAudioSession {
   //  return null;
   //}
 
+  /// (UNTESTED)
   Future<void> setPreferredInput(AVAudioSessionPortDescription input) =>
       _channel.invokeMethod('setPreferredInput', [input._toMap()]);
 
@@ -203,6 +223,7 @@ class AVAudioSession {
   //Future<void> setOutputDataSource(
   //    AVAudioSessionDataSourceDescription output) async {}
 
+  /// (UNTESTED)
   Future<void> overrideOutputAudioPort(
           AVAudioSessionPortOverride portOverride) =>
       _channel.invokeMethod('overrideOutputAudioPort', [portOverride.index]);
@@ -276,11 +297,13 @@ class AVAudioSession {
 
   //Future<void> setPreferredSampleRate(double rate) async {}
 
+  /// (UNTESTED)
   Future<Duration> get inputLatency async {
     return Duration(
         microseconds: (await _channel.invokeMethod<int>('getInputLatency'))!);
   }
 
+  /// (UNTESTED)
   Future<Duration> get outputLatency async {
     return Duration(
         microseconds: (await _channel.invokeMethod<int>('getOutputLatency'))!);
