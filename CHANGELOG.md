@@ -1,3 +1,7 @@
+## 0.1.5
+
+* Add more missing API level checks on Android.
+
 ## 0.1.4
 
 * Add missing API level checks on Android.
