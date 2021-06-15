@@ -238,16 +238,7 @@ public class AndroidAudioManager implements MethodCallHandler {
         private BroadcastReceiver noisyReceiver;
         private Context applicationContext;
         private AudioManager audioManager;
-        private AudioDeviceCallback audioDeviceCallback = new AudioDeviceCallback() {
-            @Override
-            public void onAudioDevicesAdded(AudioDeviceInfo[] addedDevices) {
-                invokeMethod("onAudioDevicesAdded", encodeAudioDevices(addedDevices));
-            }
-            @Override
-            public void onAudioDevicesRemoved(AudioDeviceInfo[] removedDevices) {
-                invokeMethod("onAudioDevicesRemoved", encodeAudioDevices(removedDevices));
-            }
-        };
+        private Object audioDeviceCallback;
 
         private static List<?> encodeAudioDevices(AudioDeviceInfo[] devices) {
             ArrayList<Map<String, Object>> result = new ArrayList<>();
@@ -277,8 +268,22 @@ public class AndroidAudioManager implements MethodCallHandler {
             this.applicationContext = applicationContext;
             audioManager = (AudioManager)applicationContext.getSystemService(Context.AUDIO_SERVICE);
             if (Build.VERSION.SDK_INT >= 23) {
-                audioManager.registerAudioDeviceCallback(audioDeviceCallback, handler);
+                initAudioDeviceCallback();
             }
+        }
+
+        private void initAudioDeviceCallback() {
+            audioDeviceCallback = new AudioDeviceCallback() {
+                @Override
+                public void onAudioDevicesAdded(AudioDeviceInfo[] addedDevices) {
+                    invokeMethod("onAudioDevicesAdded", encodeAudioDevices(addedDevices));
+                }
+                @Override
+                public void onAudioDevicesRemoved(AudioDeviceInfo[] removedDevices) {
+                    invokeMethod("onAudioDevicesRemoved", encodeAudioDevices(removedDevices));
+                }
+            };
+            audioManager.registerAudioDeviceCallback((AudioDeviceCallback)audioDeviceCallback, handler);
         }
 
         public void add(AndroidAudioManager manager) {
@@ -581,10 +586,14 @@ public class AndroidAudioManager implements MethodCallHandler {
         public void dispose() {
             abandonAudioFocus();
             if (Build.VERSION.SDK_INT >= 23) {
-                audioManager.unregisterAudioDeviceCallback(audioDeviceCallback);
+                disposeAudioDeviceCallback();
             }
             applicationContext = null;
             audioManager = null;
+        }
+
+        private void disposeAudioDeviceCallback() {
+            audioManager.unregisterAudioDeviceCallback((AudioDeviceCallback)audioDeviceCallback);
         }
     }
 
