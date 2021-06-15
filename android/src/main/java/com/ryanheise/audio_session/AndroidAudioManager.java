@@ -276,7 +276,9 @@ public class AndroidAudioManager implements MethodCallHandler {
         public Singleton(Context applicationContext) {
             this.applicationContext = applicationContext;
             audioManager = (AudioManager)applicationContext.getSystemService(Context.AUDIO_SERVICE);
-            audioManager.registerAudioDeviceCallback(audioDeviceCallback, handler);
+            if (Build.VERSION.SDK_INT >= 23) {
+                audioManager.registerAudioDeviceCallback(audioDeviceCallback, handler);
+            }
         }
 
         public void add(AndroidAudioManager manager) {
@@ -468,6 +470,7 @@ public class AndroidAudioManager implements MethodCallHandler {
             return null;
         }
         private Object getProperty(String arg) {
+            requireApi(17);
             return audioManager.getProperty(arg);
         }
         private Object getDevices(int flags) {
@@ -577,7 +580,9 @@ public class AndroidAudioManager implements MethodCallHandler {
 
         public void dispose() {
             abandonAudioFocus();
-            audioManager.unregisterAudioDeviceCallback(audioDeviceCallback);
+            if (Build.VERSION.SDK_INT >= 23) {
+                audioManager.unregisterAudioDeviceCallback(audioDeviceCallback);
+            }
             applicationContext = null;
             audioManager = null;
         }
