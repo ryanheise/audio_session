@@ -26,12 +26,18 @@ class AudioSession {
   static Future<AudioSession> get instance async {
     if (_instance == null) {
       _instance = AudioSession._();
-      // TODO: Use this code without the '?' once a Dart bug is fixed.
-      // (similar instances occur elsewhere)
-      //Map? data = await _channel.invokeMethod<Map>('getConfiguration');
-      Map? data = await _channel.invokeMethod<Map?>('getConfiguration');
-      if (data != null) {
-        _instance!._configuration = AudioSessionConfiguration.fromJson(data);
+      try {
+        // TODO: Use this code without the '?' once a Dart bug is fixed.
+        // (similar instances occur elsewhere)
+        //Map? data = await _channel.invokeMethod<Map>('getConfiguration');
+        Map? data = await _channel.invokeMethod<Map?>('getConfiguration');
+        if (data != null) {
+          _instance!._configuration = AudioSessionConfiguration.fromJson(data);
+        }
+      } catch (e) {
+        // Unsupported platform, so default to null.
+        // TODO: We should at least try share the config between isolates on the
+        // Dart side.
       }
     }
     return _instance!;
@@ -193,7 +199,11 @@ class AudioSession {
       configuration.avAudioSessionRouteSharingPolicy,
     );
     _configuration = configuration;
-    await _channel.invokeMethod('setConfiguration', [configuration.toJson()]);
+    try {
+      await _channel.invokeMethod('setConfiguration', [configuration.toJson()]);
+    } catch (e) {
+      // Unsupported platform - ignore.
+    }
   }
 
   /// Activates or deactivates this audio session. Typically an audio plugin
