@@ -1,3 +1,9 @@
+## next
+
+* Update Android Gradle dependencies.
+* Fix Android compiler warnings.
+* Fix setBluetoothScoOn bug.
+
 ## 0.1.5
 
 * Add more missing API level checks on Android.

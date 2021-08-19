@@ -10,6 +10,7 @@ import android.media.AudioManager;
 import android.media.MicrophoneInfo;
 import android.os.Build;
 import android.os.Handler;
+import android.os.Looper;
 import android.util.Pair;
 import android.view.KeyEvent;
 import androidx.media.AudioAttributesCompat;
@@ -232,7 +233,7 @@ public class AndroidAudioManager implements MethodCallHandler {
      * share access to.
      */
     private static class Singleton {
-        private final Handler handler = new Handler();
+        private final Handler handler = new Handler(Looper.getMainLooper());
         private List<AndroidAudioManager> instances = new ArrayList<>();
         private AudioFocusRequestCompat audioFocusRequest;
         private BroadcastReceiver noisyReceiver;
@@ -424,7 +425,7 @@ public class AndroidAudioManager implements MethodCallHandler {
             return null;
         }
         private Object setBluetoothScoOn(boolean enabled) {
-            audioManager.setBluetoothA2dpOn(enabled);
+            audioManager.setBluetoothScoOn(enabled);
             return null;
         }
         private Object isBluetoothScoOn() {
@@ -511,11 +512,11 @@ public class AndroidAudioManager implements MethodCallHandler {
             for (MicrophoneInfo microphone : microphones) {
                 List<List<Double>> frequencyResponse = new ArrayList<>();
                 for (Pair<Float, Float> pair : microphone.getFrequencyResponse()) {
-                    frequencyResponse.add(new ArrayList(Arrays.asList((double)((float)pair.first), (double)((float)pair.second))));
+                    frequencyResponse.add(new ArrayList<Double>(Arrays.asList((double)((float)pair.first), (double)((float)pair.second))));
                 }
                 List<List<Integer>> channelMapping = new ArrayList<>();
                 for (Pair<Integer, Integer> pair : microphone.getChannelMapping()) {
-                    channelMapping.add(new ArrayList(Arrays.asList(pair.first, pair.second)));
+                    channelMapping.add(new ArrayList<Integer>(Arrays.asList(pair.first, pair.second)));
                 }
                 result.add(mapOf(
                     "description", microphone.getDescription(),
