@@ -1,4 +1,4 @@
-## next
+## 0.1.6
 
 * Update Android Gradle dependencies.
 * Fix Android compiler warnings.
