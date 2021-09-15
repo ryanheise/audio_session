@@ -25,7 +25,7 @@ static NSHashTable<DarwinAudioSession *> *sessions = nil;
         [weakSelf handleMethodCall:call result:result];
     }];
     if (firstInstance) {
-        NSLog(@"adding notification observers");
+        //NSLog(@"adding notification observers");
         [AVAudioSession sharedInstance];
         [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(audioInterrupt:) name:AVAudioSessionInterruptionNotification object:nil];
         [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(routeChange:) name:AVAudioSessionRouteChangeNotification object:nil];
@@ -630,7 +630,7 @@ static NSHashTable<DarwinAudioSession *> *sessions = nil;
         wasSuspended = (id)[NSNull null];
     }
 
-    NSLog(@"audioInterrupt");
+    //NSLog(@"audioInterrupt");
     switch ([interruptionType integerValue]) {
         case AVAudioSessionInterruptionTypeBegan: {
             [self invokeMethod:@"onInterruptionEvent" arguments:@[@(0), @(0), wasSuspended]];
@@ -651,23 +651,23 @@ static NSHashTable<DarwinAudioSession *> *sessions = nil;
 
 - (void) routeChange:(NSNotification*)notification {
     NSNumber *routeChangeReasonType = (NSNumber*)[notification.userInfo valueForKey:AVAudioSessionRouteChangeReasonKey];
-    NSLog(@"routeChange detected");
+    //NSLog(@"routeChange detected");
     [self invokeMethod:@"onRouteChange" arguments:@[@([routeChangeReasonType integerValue])]];
 }
 
 - (void) silenceSecondaryAudio:(NSNotification*)notification {
     NSNumber *silenceSecondaryType = (NSNumber*)[notification.userInfo valueForKey:AVAudioSessionSilenceSecondaryAudioHintTypeKey];
-    NSLog(@"silenceSecondaryAudioHint detected");
+    //NSLog(@"silenceSecondaryAudioHint detected");
     [self invokeMethod:@"onSilenceSecondaryAudioHint" arguments:@[@([silenceSecondaryType integerValue])]];
 }
 
 - (void) mediaServicesLost:(NSNotification*)notification {
-    NSLog(@"mediaServicesLost detected");
+    //NSLog(@"mediaServicesLost detected");
     [self invokeMethod:@"onMediaServicesWereLost" arguments:nil];
 }
 
 - (void) mediaServicesReset:(NSNotification*)notification {
-    NSLog(@"mediaServicesReset detected");
+    //NSLog(@"mediaServicesReset detected");
     [self invokeMethod:@"onMediaServicesWereReset" arguments:nil];
 }
 
@@ -679,7 +679,7 @@ static NSHashTable<DarwinAudioSession *> *sessions = nil;
 
 - (void) dealloc {
     if (sessions.allObjects.count == 0) {
-        NSLog(@"removing notification observers");
+        //NSLog(@"removing notification observers");
         [[NSNotificationCenter defaultCenter] removeObserver:self];
     }
 }
