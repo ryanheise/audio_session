@@ -1,3 +1,7 @@
+## 0.1.6+1
+
+* Hide iOS/macOS logs.
+
 ## 0.1.6
 
 * Update Android Gradle dependencies.
