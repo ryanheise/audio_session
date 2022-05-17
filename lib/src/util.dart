@@ -1,5 +1,5 @@
-T decodeEnum<T>(List<T> values, int index, {int defaultIndex = 0}) =>
-    values[index >= values.length ? defaultIndex : index];
+T decodeEnum<T>(List<T> values, int index, {required T defaultValue}) =>
+    index < values.length ? values[index] : defaultValue;
 
-T decodeMapEnum<T>(Map<int, T> values, int index, {int defaultIndex = 0}) =>
-    values[index >= values.length ? defaultIndex : index]!;
+T decodeMapEnum<T>(Map<int, T> values, int index, {required T defaultValue}) =>
+    values[index] ?? defaultValue;

@@ -35,21 +35,23 @@ class AVAudioSession {
         case 'onInterruptionEvent':
           _interruptionNotificationSubject
               .add(AVAudioSessionInterruptionNotification(
-            type: decodeEnum(AVAudioSessionInterruptionType.values, args[0]),
+            type: decodeEnum(AVAudioSessionInterruptionType.values, args[0],
+                defaultValue: AVAudioSessionInterruptionType.began),
             options: AVAudioSessionInterruptionOptions(args[1]),
             wasSuspended: args[2],
           ));
           break;
         case 'onRouteChange':
           AVAudioSessionRouteChange routeChange = AVAudioSessionRouteChange(
-              reason:
-                  decodeEnum(AVAudioSessionRouteChangeReason.values, args[0]));
+              reason: decodeEnum(
+                  AVAudioSessionRouteChangeReason.values, args[0],
+                  defaultValue: AVAudioSessionRouteChangeReason.unknown));
           _routeChangeSubject.add(routeChange);
           break;
         case 'onSilenceSecondaryAudioHint':
           _silenceSecondaryAudioHintSubject.add(decodeEnum(
               AVAudioSessionSilenceSecondaryAudioHintType.values, args[0],
-              defaultIndex: 1));
+              defaultValue: AVAudioSessionSilenceSecondaryAudioHintType.begin));
           break;
         case 'onMediaServicesWereLost':
           _mediaServicesWereLostSubject.add(null);
@@ -84,7 +86,8 @@ class AVAudioSession {
   /// (UNTESTED)
   Future<AVAudioSessionCategory> get category async {
     final index = (await (_channel.invokeMethod<int>('getCategory')))!;
-    return decodeEnum(AVAudioSessionCategory.values, index);
+    return decodeEnum(AVAudioSessionCategory.values, index,
+        defaultValue: AVAudioSessionCategory.playback);
   }
 
   Future<void> setCategory(
@@ -100,7 +103,8 @@ class AVAudioSession {
   Future<List<AVAudioSessionCategory>> get availableCategories async =>
       (await _channel.invokeMethod<List<dynamic>>('getAvailableCategories'))!
           .cast<int>()
-          .map((index) => decodeEnum(AVAudioSessionCategory.values, index))
+          .map((index) => decodeEnum(AVAudioSessionCategory.values, index,
+              defaultValue: AVAudioSessionCategory.playback))
           .toList();
 
   /// (UNTESTED)
@@ -112,7 +116,8 @@ class AVAudioSession {
   /// (UNTESTED)
   Future<AVAudioSessionMode> get mode async {
     final index = (await (_channel.invokeMethod<int>('getMode')))!;
-    return decodeEnum(AVAudioSessionMode.values, index);
+    return decodeEnum(AVAudioSessionMode.values, index,
+        defaultValue: AVAudioSessionMode.defaultMode);
   }
 
   /// (UNTESTED)
@@ -122,7 +127,8 @@ class AVAudioSession {
   /// (UNTESTED)
   Future<List<AVAudioSessionMode>> get availableModes async => (await _channel
           .invokeMethod<List<AVAudioSessionMode>>('getAvailableModes'))!
-      .map((index) => decodeEnum(AVAudioSessionMode.values, index as int))
+      .map((index) => decodeEnum(AVAudioSessionMode.values, index as int,
+          defaultValue: AVAudioSessionMode.defaultMode))
       .toList();
 
   /// (UNTESTED)
@@ -133,7 +139,8 @@ class AVAudioSession {
     final index = await _channel.invokeMethod<int?>('getRouteSharingPolicy');
     return index == null
         ? null
-        : decodeEnum(AVAudioSessionRouteSharingPolicy.values, index);
+        : decodeEnum(AVAudioSessionRouteSharingPolicy.values, index,
+            defaultValue: AVAudioSessionRouteSharingPolicy.defaultPolicy);
   }
 
   Future<bool> setActive(bool active,
@@ -144,7 +151,8 @@ class AVAudioSession {
   /// (UNTESTED)
   Future<AVAudioSessionRecordPermission> get recordPermission async {
     final index = (await (_channel.invokeMethod<int>('getRecordPermission')))!;
-    return decodeEnum(AVAudioSessionRecordPermission.values, index);
+    return decodeEnum(AVAudioSessionRecordPermission.values, index,
+        defaultValue: AVAudioSessionRecordPermission.undetermined);
   }
 
   /// (UNTESTED)
@@ -177,7 +185,8 @@ class AVAudioSession {
     final index = await _channel.invokeMethod<int?>('getPromptStyle');
     return index == null
         ? null
-        : decodeEnum(AVAudioSessionPromptStyle.values, index);
+        : decodeEnum(AVAudioSessionPromptStyle.values, index,
+            defaultValue: AVAudioSessionPromptStyle.none);
   }
 
   Future<AVAudioSessionRouteDescription> get currentRoute async {
@@ -568,7 +577,8 @@ class AVAudioSessionPortDescription {
       AVAudioSessionPortDescription(
         channel: channel,
         portName: map['portName'],
-        portType: decodeEnum(AVAudioSessionPort.values, map['portType']),
+        portType: decodeEnum(AVAudioSessionPort.values, map['portType'],
+            defaultValue: AVAudioSessionPort.builtInMic),
         channels: [],
         uid: map['uid'],
         hasHardwareVoiceCallProcessing: map['hasHardwareVoiceCallProcessing'],
@@ -692,23 +702,28 @@ class AVAudioSessionDataSourceDescription {
         name: map['name'],
         location: map['location'] == null
             ? null
-            : decodeEnum(AVAudioSessionLocation.values, map['location']),
+            : decodeEnum(AVAudioSessionLocation.values, map['location'],
+                defaultValue: AVAudioSessionLocation.lower),
         orientation: map['orientation'] == null
             ? null
-            : decodeEnum(AVAudioSessionOrientation.values, map['orientation']),
+            : decodeEnum(AVAudioSessionOrientation.values, map['orientation'],
+                defaultValue: AVAudioSessionOrientation.top),
         selectedPolarPattern: map['selectedPolarPattern'] == null
             ? null
             : decodeEnum(
-                AVAudioSessionPolarPattern.values, map['selectedPolarPattern']),
-        supportedPolarPatterns: (map['supportedPolarPatterns']
-                as List<dynamic>?)
-            ?.map(
-                (index) => decodeEnum(AVAudioSessionPolarPattern.values, index))
-            .toList(),
+                AVAudioSessionPolarPattern.values, map['selectedPolarPattern'],
+                defaultValue: AVAudioSessionPolarPattern.stereo),
+        supportedPolarPatterns:
+            (map['supportedPolarPatterns'] as List<dynamic>?)
+                ?.map((index) => decodeEnum(
+                    AVAudioSessionPolarPattern.values, index,
+                    defaultValue: AVAudioSessionPolarPattern.stereo))
+                .toList(),
         preferredPolarPattern: map['preferredPolarPattern'] == null
             ? null
-            : decodeEnum(AVAudioSessionPolarPattern.values,
-                map['preferredPolarPattern']),
+            : decodeEnum(
+                AVAudioSessionPolarPattern.values, map['preferredPolarPattern'],
+                defaultValue: AVAudioSessionPolarPattern.stereo),
       );
 
   Map<String, dynamic> _toMap() => {

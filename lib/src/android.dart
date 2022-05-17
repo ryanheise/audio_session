@@ -38,7 +38,7 @@ class AndroidAudioManager {
           if (_onAudioFocusChanged != null) {
             _onAudioFocusChanged!(decodeMapEnum(
                 AndroidAudioFocus.values, args[0],
-                defaultIndex: 1));
+                defaultValue: AndroidAudioFocus.gain));
           }
           break;
         case 'onBecomingNoisy':
@@ -111,7 +111,7 @@ class AndroidAudioManager {
   Future<AndroidRingerMode> getRingerMode() async {
     return decodeEnum(AndroidRingerMode.values,
         (await _channel.invokeMethod<int>('getRingerMode'))!,
-        defaultIndex: 2);
+        defaultValue: AndroidRingerMode.normal);
   }
 
   /// (UNTESTED)
@@ -181,7 +181,7 @@ class AndroidAudioManager {
   Future<AndroidAudioCapturePolicy> getAllowedCapturePolicy() async {
     return decodeMapEnum(AndroidAudioCapturePolicy.values,
         (await _channel.invokeMethod<int>('getAllowedCapturePolicy'))!,
-        defaultIndex: 1);
+        defaultValue: AndroidAudioCapturePolicy.allowAll);
   }
 
   // TODO: isOffloadedPlaybackSupported
@@ -230,7 +230,8 @@ class AndroidAudioManager {
   /// (UNTESTED)
   Future<AndroidAudioHardwareMode> getMode() async {
     return decodeMapEnum(AndroidAudioHardwareMode.values,
-        (await _channel.invokeMethod<int>('getMode'))!);
+        (await _channel.invokeMethod<int>('getMode'))!,
+        defaultValue: AndroidAudioHardwareMode.normal);
   }
 
   /// (UNTESTED)
@@ -339,8 +340,9 @@ class AndroidAudioManager {
               id: raw['id'],
               type: raw['type'],
               address: raw['address'],
-              location:
-                  decodeEnum(AndroidMicrophoneLocation.values, raw['location']),
+              location: decodeEnum(
+                  AndroidMicrophoneLocation.values, raw['location'],
+                  defaultValue: AndroidMicrophoneLocation.unknown),
               group: raw['group'],
               indexInTheGroup: raw['indexInTheGroup'],
               position: (raw['position'] as List<dynamic>).cast<double>(),
@@ -354,8 +356,9 @@ class AndroidAudioManager {
               sensitivity: raw['sensitivity'],
               maxSpl: raw['maxSpl'],
               minSpl: raw['minSpl'],
-              directionality: decodeEnum(AndroidMicrophoneDirectionality.values,
-                  raw['directionality']),
+              directionality: decodeEnum(
+                  AndroidMicrophoneDirectionality.values, raw['directionality'],
+                  defaultValue: AndroidMicrophoneDirectionality.unknown),
             ))
         .toList();
   }
@@ -386,7 +389,8 @@ class AndroidAudioManager {
           (raw['channelIndexMasks'] as List<dynamic>).cast<int>(),
       channelCounts: (raw['channelCounts'] as List<dynamic>).cast<int>(),
       encodings: (raw['encodings'] as List<dynamic>).cast<int>(),
-      type: decodeEnum(AndroidAudioDeviceType.values, raw['type']),
+      type: decodeEnum(AndroidAudioDeviceType.values, raw['type'],
+          defaultValue: AndroidAudioDeviceType.unknown),
     );
   }
 }
@@ -410,10 +414,12 @@ class AndroidAudioAttributes {
 
   AndroidAudioAttributes.fromJson(Map data)
       : this(
-          contentType:
-              decodeEnum(AndroidAudioContentType.values, data['contentType']),
+          contentType: decodeEnum(
+              AndroidAudioContentType.values, data['contentType'],
+              defaultValue: AndroidAudioContentType.unknown),
           flags: AndroidAudioFlags(data['flags']),
-          usage: decodeMapEnum(AndroidAudioUsage.values, data['usage']),
+          usage: decodeMapEnum(AndroidAudioUsage.values, data['usage'],
+              defaultValue: AndroidAudioUsage.unknown),
         );
 
   Map toJson() => {
