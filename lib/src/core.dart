@@ -83,7 +83,9 @@ class AudioSession {
     _avAudioSession?.routeChangeStream
         .where((routeChange) =>
             routeChange.reason ==
-            AVAudioSessionRouteChangeReason.oldDeviceUnavailable)
+                AVAudioSessionRouteChangeReason.oldDeviceUnavailable ||
+            routeChange.reason ==
+                AVAudioSessionRouteChangeReason.newDeviceAvailable)
         .listen((routeChange) async {
       _becomingNoisyEventSubject.add(null);
       final currentRoute = await _avAudioSession!.currentRoute;
