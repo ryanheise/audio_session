@@ -1,3 +1,9 @@
+## 0.1.7
+
+* Fix bug detecting added devices on iOS/macOS (@derekcoder).
+* Fix bug decoding Android enums.
+* Migrate to Flutter 3, Android 31
+
 ## 0.1.6+1
 
 * Hide iOS/macOS logs.
