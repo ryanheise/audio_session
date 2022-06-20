@@ -333,8 +333,8 @@ class AndroidAudioManager {
 
   /// (UNTESTED) Requires API level 28
   Future<List<AndroidMicrophoneInfo>> getMicrophones() async {
-    return ((await _channel.invokeListMethod<Map<String, dynamic>>(
-            'getMicrophones')) as List<dynamic>)
+    return ((await _channel.invokeMethod<List<dynamic>>('getMicrophones'))!)
+        .map((raw) => Map<String, dynamic>.from(raw))
         .map((raw) => AndroidMicrophoneInfo(
               description: raw['description'],
               id: raw['id'],
