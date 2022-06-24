@@ -1,3 +1,7 @@
+## 0.1.8
+
+* Fix bug in AndroidAudioManager.getMicrophones().
+
 ## 0.1.7
 
 * Fix bug detecting added devices on iOS/macOS (@derekcoder).
