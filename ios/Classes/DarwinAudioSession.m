@@ -415,7 +415,7 @@ static NSHashTable<DarwinAudioSession *> *sessions = nil;
         AVAudioSessionPortCarAudio: @(14),           
         AVAudioSessionPortUSBAudio: @(18),           
     };
-    return map[portType];
+    return map[portType] ? map[portType] : (id)[NSNull null];
 }
 
 - (void)overrideOutputAudioPort:(NSArray *)args result:(FlutterResult)result {
