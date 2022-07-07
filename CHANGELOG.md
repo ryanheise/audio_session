@@ -1,3 +1,7 @@
+## 0.1.9
+
+* Fix iOS error when decoding portType.
+
 ## 0.1.8
 
 * Fix bug in AndroidAudioManager.getMicrophones().
