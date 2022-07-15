@@ -160,7 +160,27 @@ class AndroidAudioManager {
         .invokeMethod<bool>('isStreamMute', [streamType.index]))!;
   }
 
-  /// (UNTESTED)
+  /// (UNTESTED) Requires API level 31
+  Future<List<AndroidAudioDeviceInfo>>
+      getAvailableCommunicationDevices() async =>
+          _decodeAudioDevices((await _channel.invokeMethod<List<dynamic>>(
+              'getAvailableCommunicationDevices')));
+
+  /// (UNTESTED) Requires API level 31
+  Future<bool> setCommunicationDevice(AndroidAudioDeviceInfo device) async =>
+      (await _channel
+          .invokeMethod<bool>('setCommunicationDevice', [device.id]))!;
+
+  /// (UNTESTED) Requires API level 31
+  Future<AndroidAudioDeviceInfo> getCommunicationDevice() async =>
+      (await _channel
+          .invokeMethod<AndroidAudioDeviceInfo>('getCommunicationDevice'))!;
+
+  /// (UNTESTED) Requires API level 31
+  Future<void> clearCommunicationDevice() async =>
+      await _channel.invokeMethod('clearCommunicationDevice');
+
+  /// Deprecated by setCommunicationDevice in API level 31
   Future<void> setSpeakerphoneOn(bool enabled) async {
     await _channel.invokeMethod<bool>('setSpeakerphoneOn', [enabled]);
   }
