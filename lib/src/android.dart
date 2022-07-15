@@ -160,7 +160,6 @@ class AndroidAudioManager {
         .invokeMethod<bool>('isStreamMute', [streamType.index]))!;
   }
 
-  /// (UNTESTED)
   Future<void> setSpeakerphoneOn(bool enabled) async {
     await _channel.invokeMethod<bool>('setSpeakerphoneOn', [enabled]);
   }
