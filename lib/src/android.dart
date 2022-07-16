@@ -173,8 +173,8 @@ class AndroidAudioManager {
 
   /// (UNTESTED) Requires API level 31
   Future<AndroidAudioDeviceInfo> getCommunicationDevice() async =>
-      (await _channel
-          .invokeMethod<AndroidAudioDeviceInfo>('getCommunicationDevice'))!;
+      _decodeAudioDevice(
+          await _channel.invokeMethod<dynamic>('getCommunicationDevice'));
 
   /// (UNTESTED) Requires API level 31
   Future<void> clearCommunicationDevice() async =>

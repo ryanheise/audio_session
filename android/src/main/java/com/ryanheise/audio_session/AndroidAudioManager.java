@@ -414,10 +414,14 @@ public class AndroidAudioManager implements MethodCallHandler {
             requireApi(23);
             return audioManager.isStreamMute(streamType);
         }
-        private List<AudioDeviceInfo> getAvailableCommunicationDevices() {
+        private List<Map<String, Object>> getAvailableCommunicationDevices() {
             requireApi(31);
             devices = audioManager.getAvailableCommunicationDevices();
-            return devices;
+            ArrayList<Map<String, Object>> result = new ArrayList<Map<String, Object>>();
+            for (AudioDeviceInfo device : devices) {
+                result.add(encodeAudioDevice(device));
+            }
+            return result;
         }
         private boolean setCommunicationDevice(Integer deviceId) {
             requireApi(31);
@@ -428,9 +432,9 @@ public class AndroidAudioManager implements MethodCallHandler {
             }
             return false;
         }
-        private AudioDeviceInfo getCommunicationDevice() {
+        private Map<String, Object> getCommunicationDevice() {
             requireApi(31);
-            return audioManager.getCommunicationDevice();
+            return encodeAudioDevice(audioManager.getCommunicationDevice());
         }
         private Object clearCommunicationDevice() {
             requireApi(31);
