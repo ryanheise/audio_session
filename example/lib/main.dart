@@ -169,42 +169,6 @@ class _MyAppState extends State<MyApp> {
                   },
                 ),
               ),
-
-              // All the following simply lets me exercise the new methods
-              // for testing. I'll delete it in another commit.
-              // It doesn't actually change the output of the player
-              // because this is not a voice chat / video chat app.
-              Expanded(
-                  child: FutureBuilder<List<AndroidAudioDeviceInfo>>(
-                      future: AndroidAudioManager()
-                          .getAvailableCommunicationDevices(),
-                      builder: (context, snapshot) {
-                        final devices = snapshot.data;
-                        if (devices == null) return SizedBox();
-                        return Column(
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            children: [
-                              Text('Communication Devices',
-                                  style: Theme.of(context).textTheme.headline6),
-                              for (var d in devices)
-                                TextButton(
-                                    child: Text('${d.id} ${d.type.name}'),
-                                    onPressed: () {
-                                      final mgr = AndroidAudioManager();
-                                      mgr
-                                          .setCommunicationDevice(d)
-                                          .then((value) {
-                                        print(
-                                            'set communication device returned $value');
-                                        mgr.getCommunicationDevice().then((d2) {
-                                          print(
-                                              'get communication device returned ${d2.id} ${d2.type.name}');
-                                          mgr.clearCommunicationDevice();
-                                        });
-                                      });
-                                    })
-                            ]);
-                      }))
             ],
           ),
         ),
