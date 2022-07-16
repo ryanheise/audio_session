@@ -180,7 +180,7 @@ class AndroidAudioManager {
   Future<void> clearCommunicationDevice() async =>
       await _channel.invokeMethod('clearCommunicationDevice');
 
-  /// Deprecated by setCommunicationDevice in API level 31
+  /// (UNTESTED)
   Future<void> setSpeakerphoneOn(bool enabled) async {
     await _channel.invokeMethod<bool>('setSpeakerphoneOn', [enabled]);
   }
