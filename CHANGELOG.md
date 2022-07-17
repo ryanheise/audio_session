@@ -1,3 +1,7 @@
+## 0.1.10
+
+* Add communication device methods for Android 31 (@towynlin).
+
 ## 0.1.9
 
 * Fix iOS error when decoding portType.
