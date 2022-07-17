@@ -109,6 +109,22 @@ public class AndroidAudioManager implements MethodCallHandler {
                 result.success(singleton.isStreamMute((Integer)args.get(0)));
                 break;
             }
+            case "getAvailableCommunicationDevices": {
+                result.success(singleton.getAvailableCommunicationDevices());
+                break;
+            }
+            case "setCommunicationDevice": {
+                result.success(singleton.setCommunicationDevice((Integer)args.get(0)));
+                break;
+            }
+            case "getCommunicationDevice": {
+                result.success(singleton.getCommunicationDevice());
+                break;
+            }
+            case "clearCommunicationDevice": {
+                result.success(singleton.clearCommunicationDevice());
+                break;
+            }
             case "setSpeakerphoneOn": {
                 result.success(singleton.setSpeakerphoneOn((Boolean)args.get(0)));
                 break;
@@ -240,6 +256,7 @@ public class AndroidAudioManager implements MethodCallHandler {
         private Context applicationContext;
         private AudioManager audioManager;
         private Object audioDeviceCallback;
+        private List<AudioDeviceInfo> devices = new ArrayList<AudioDeviceInfo>();
 
         private static List<?> encodeAudioDevices(AudioDeviceInfo[] devices) {
             ArrayList<Map<String, Object>> result = new ArrayList<>();
@@ -396,6 +413,33 @@ public class AndroidAudioManager implements MethodCallHandler {
         private Object isStreamMute(int streamType) {
             requireApi(23);
             return audioManager.isStreamMute(streamType);
+        }
+        private List<Map<String, Object>> getAvailableCommunicationDevices() {
+            requireApi(31);
+            devices = audioManager.getAvailableCommunicationDevices();
+            ArrayList<Map<String, Object>> result = new ArrayList<Map<String, Object>>();
+            for (AudioDeviceInfo device : devices) {
+                result.add(encodeAudioDevice(device));
+            }
+            return result;
+        }
+        private boolean setCommunicationDevice(Integer deviceId) {
+            requireApi(31);
+            for (AudioDeviceInfo device : devices) {
+                if (device.getId() == deviceId) {
+                    return audioManager.setCommunicationDevice(device);
+                }
+            }
+            return false;
+        }
+        private Map<String, Object> getCommunicationDevice() {
+            requireApi(31);
+            return encodeAudioDevice(audioManager.getCommunicationDevice());
+        }
+        private Object clearCommunicationDevice() {
+            requireApi(31);
+            audioManager.clearCommunicationDevice();
+            return null;
         }
         private Object setSpeakerphoneOn(boolean enabled) {
             audioManager.setSpeakerphoneOn(enabled);
