@@ -1,3 +1,7 @@
+## 0.1.11
+
+* Fix iOS bug where devicesChangedEventStream was not firing.
+
 ## 0.1.10
 
 * Add communication device methods for Android 31 (@towynlin).
