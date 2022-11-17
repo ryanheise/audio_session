@@ -93,8 +93,8 @@ class AudioSession {
         _becomingNoisyEventSubject.add(null);
       }
       final currentRoute = await _avAudioSession!.currentRoute;
-      _previousAVAudioSessionRoute = currentRoute;
       final previousRoute = _previousAVAudioSessionRoute ?? currentRoute;
+      _previousAVAudioSessionRoute = currentRoute;
       final inputPortsAdded =
           currentRoute.inputs.difference(previousRoute.inputs);
       final outputPortsAdded =
