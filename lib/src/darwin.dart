@@ -159,11 +159,9 @@ class AVAudioSession {
   Future<bool> requestRecordPermission() async =>
       (await _channel.invokeMethod<bool>('requestRecordPermission'))!;
 
-  /// (UNTESTED)
   Future<bool> get isOtherAudioPlaying async =>
       (await _channel.invokeMethod<bool>('isOtherAudioPlaying'))!;
 
-  /// (UNTESTED)
   Future<bool> get secondaryAudioShouldBeSilencedHint async => (await _channel
       .invokeMethod<bool>('getSecondaryAudioShouldBeSilencedHint'))!;
 
