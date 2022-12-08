@@ -11,8 +11,7 @@ class AndroidAudioManager {
       const MethodChannel('com.ryanheise.android_audio_manager');
   static AndroidAudioManager? _instance;
 
-  final _scoAudioStateUpdatedEventSubject =
-      BehaviorSubject<AndroidScoAudioState>();
+  final _scoAudioUpdatedEventSubject = BehaviorSubject<AndroidScoAudioEvent>();
   final _becomingNoisyEventSubject = PublishSubject<void>();
   AndroidOnAudioFocusChanged? _onAudioFocusChanged;
   AndroidOnAudioDevicesChanged? _onAudioDevicesAdded;
@@ -57,8 +56,7 @@ class AndroidAudioManager {
           }
           break;
         case 'onScoAudioStateUpdated':
-          _scoAudioStateUpdatedEventSubject
-              .add(_decodeScoAudioStateEvent(args));
+          _scoAudioUpdatedEventSubject.add(_decodeScoAudioEvent(args));
           break;
       }
     });
@@ -67,11 +65,11 @@ class AndroidAudioManager {
   Stream<void> get becomingNoisyEventStream =>
       _becomingNoisyEventSubject.stream;
 
-  Stream<AndroidScoAudioState> get scoAudioStateEventStream =>
-      _scoAudioStateUpdatedEventSubject.stream;
+  Stream<AndroidScoAudioEvent> get scoAudioEventStream =>
+      _scoAudioUpdatedEventSubject.stream;
 
-  AndroidScoAudioState? get currentScoAudioStateEvent =>
-      _scoAudioStateUpdatedEventSubject.valueOrNull;
+  AndroidScoAudioState? get currentScoAudioState =>
+      _scoAudioUpdatedEventSubject.valueOrNull?.currentState;
 
   Future<bool> requestAudioFocus(AndroidAudioFocusRequest focusRequest) async {
     _onAudioFocusChanged = focusRequest.onAudioFocusChanged;
@@ -403,14 +401,14 @@ class AndroidAudioManager {
     return (rawList as List<dynamic>).map(_decodeAudioDevice).toList();
   }
 
-  AndroidScoAudioState _decodeScoAudioStateEvent(List<dynamic> args) {
-    final AndroidScoAudioStates current = decodeMapEnum(
-        AndroidScoAudioStates.values, args[0],
-        defaultValue: AndroidScoAudioStates.error);
-    final AndroidScoAudioStates previous = decodeMapEnum(
-        AndroidScoAudioStates.values, args[1],
-        defaultValue: AndroidScoAudioStates.error);
-    return AndroidScoAudioState(current, previous);
+  AndroidScoAudioEvent _decodeScoAudioEvent(List<dynamic> args) {
+    final AndroidScoAudioState current = decodeMapEnum(
+        AndroidScoAudioState.values, args[0],
+        defaultValue: AndroidScoAudioState.error);
+    final AndroidScoAudioState previous = decodeMapEnum(
+        AndroidScoAudioState.values, args[1],
+        defaultValue: AndroidScoAudioState.error);
+    return AndroidScoAudioEvent(current, previous);
   }
 
   AndroidAudioDeviceInfo _decodeAudioDevice(dynamic raw) {
@@ -951,26 +949,26 @@ class AndroidKeyEvent {
       };
 }
 
-class AndroidScoAudioStates {
+class AndroidScoAudioState {
   /// [error] there was an error trying to obtain the state
   ///
   /// Requires API level 8
-  static const error = AndroidScoAudioStates._(-1);
+  static const error = AndroidScoAudioState._(-1);
 
   /// [disconnected] indicating that the SCO audio channel is not established
   ///
   /// Requires API level 8
-  static const disconnected = AndroidScoAudioStates._(0);
+  static const disconnected = AndroidScoAudioState._(0);
 
   /// [connecting] indicating that the SCO audio channel is established
   ///
   /// Requires API level 8
-  static const connected = AndroidScoAudioStates._(1);
+  static const connected = AndroidScoAudioState._(1);
 
   /// [connected] indicating that the SCO audio channel is being established
   ///
   /// Requires API level 14
-  static const connecting = AndroidScoAudioStates._(2);
+  static const connecting = AndroidScoAudioState._(2);
 
   static const values = {
     -1: error,
@@ -981,7 +979,7 @@ class AndroidScoAudioStates {
 
   final int index;
 
-  const AndroidScoAudioStates._(this.index);
+  const AndroidScoAudioState._(this.index);
 
   @override
   String toString() {
@@ -997,18 +995,18 @@ class AndroidScoAudioStates {
         strIndex = 'connecting';
         break;
     }
-    return 'AndroidScoAudioStates{$strIndex}';
+    return 'AndroidScoAudioState{$strIndex}';
   }
 }
 
-class AndroidScoAudioState {
-  AndroidScoAudioState(this.currentState, this.previousState);
+class AndroidScoAudioEvent {
+  AndroidScoAudioEvent(this.currentState, this.previousState);
 
-  final AndroidScoAudioStates currentState;
-  final AndroidScoAudioStates previousState;
+  final AndroidScoAudioState currentState;
+  final AndroidScoAudioState previousState;
 
   @override
   String toString() {
-    return 'AndroidScoAudioState{currentState: $currentState, previousState: $previousState}';
+    return 'AndroidScoAudioEvent{currentState: $currentState, previousState: $previousState}';
   }
 }
