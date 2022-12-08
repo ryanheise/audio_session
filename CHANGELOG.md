@@ -1,3 +1,8 @@
+## 0.1.12
+
+* Add AndroidAudioManager.scoAudioEventStream (@rwrz)
+* Add AndroidAudioManager.currentScoAudioState (@rwrz)
+
 ## 0.1.11
 
 * Fix iOS bug where devicesChangedEventStream was not firing.
