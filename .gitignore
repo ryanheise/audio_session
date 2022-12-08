@@ -8,4 +8,8 @@ build/
 
 pubspec.lock
 
-.idea
+# IntelliJ related
+*.iml
+*.ipr
+*.iws
+.idea/
