@@ -253,6 +253,7 @@ public class AndroidAudioManager implements MethodCallHandler {
         private List<AndroidAudioManager> instances = new ArrayList<>();
         private AudioFocusRequestCompat audioFocusRequest;
         private BroadcastReceiver noisyReceiver;
+        private BroadcastReceiver scoReceiver;
         private Context applicationContext;
         private AudioManager audioManager;
         private Object audioDeviceCallback;
@@ -337,6 +338,7 @@ public class AndroidAudioManager implements MethodCallHandler {
             boolean success = status == AudioManager.AUDIOFOCUS_REQUEST_GRANTED;
             if (success) {
                 registerNoisyReceiver();
+                registerScoReceiver();
             }
             return success;
         }
@@ -344,6 +346,7 @@ public class AndroidAudioManager implements MethodCallHandler {
         private boolean abandonAudioFocus() {
             if (applicationContext == null) return false;
             unregisterNoisyReceiver();
+            unregisterScoReceiver();
             if (audioFocusRequest == null) {
                 return true;
             } else {
@@ -605,6 +608,28 @@ public class AndroidAudioManager implements MethodCallHandler {
             if (noisyReceiver == null || applicationContext == null) return;
             applicationContext.unregisterReceiver(noisyReceiver);
             noisyReceiver = null;
+        }
+
+        private void registerScoReceiver() {
+            if (scoReceiver != null) return;
+            scoReceiver = new BroadcastReceiver() {
+                @Override
+                public void onReceive(Context context, Intent intent) {
+                    // emit [onScoAudioStateUpdated] with current state [EXTRA_SCO_AUDIO_STATE] and previous state [EXTRA_SCO_AUDIO_PREVIOUS_STATE]
+                    invokeMethod(
+                        "onScoAudioStateUpdated",
+                        intent.getIntExtra(AudioManager.EXTRA_SCO_AUDIO_STATE, -1),
+                        intent.getIntExtra(AudioManager.EXTRA_SCO_AUDIO_PREVIOUS_STATE, -1)
+                    );
+                }
+            };
+            applicationContext.registerReceiver(scoReceiver, new IntentFilter(AudioManager.ACTION_SCO_AUDIO_STATE_UPDATED));
+        }
+
+        private void unregisterScoReceiver() {
+            if (scoReceiver == null || applicationContext == null) return;
+            applicationContext.unregisterReceiver(scoReceiver);
+            scoReceiver = null;
         }
 
         private AudioAttributesCompat decodeAudioAttributes(Map<?, ?> attributes) {
