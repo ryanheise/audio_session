@@ -11,6 +11,8 @@ class AndroidAudioManager {
       const MethodChannel('com.ryanheise.android_audio_manager');
   static AndroidAudioManager? _instance;
 
+  final _scoAudioStateUpdatedEventSubject =
+      BehaviorSubject<AndroidScoAudioState>();
   final _becomingNoisyEventSubject = PublishSubject<void>();
   AndroidOnAudioFocusChanged? _onAudioFocusChanged;
   AndroidOnAudioDevicesChanged? _onAudioDevicesAdded;
@@ -54,12 +56,22 @@ class AndroidAudioManager {
             _onAudioDevicesRemoved!(_decodeAudioDevices(args[0]));
           }
           break;
+        case 'onScoAudioStateUpdated':
+          _scoAudioStateUpdatedEventSubject
+              .add(_decodeScoAudioStateEvent(args));
+          break;
       }
     });
   }
 
   Stream<void> get becomingNoisyEventStream =>
       _becomingNoisyEventSubject.stream;
+
+  Stream<AndroidScoAudioState> get scoAudioStateEventStream =>
+      _scoAudioStateUpdatedEventSubject.stream;
+
+  AndroidScoAudioState? get currentScoAudioStateEvent =>
+      _scoAudioStateUpdatedEventSubject.valueOrNull;
 
   Future<bool> requestAudioFocus(AndroidAudioFocusRequest focusRequest) async {
     _onAudioFocusChanged = focusRequest.onAudioFocusChanged;
@@ -147,7 +159,6 @@ class AndroidAudioManager {
     await _channel.invokeMethod<int>('setRingerMode', [ringerMode.index]);
   }
 
-  /// (UNTESTED)
   Future<void> setStreamVolume(AndroidStreamType streamType, int index,
       AndroidAudioVolumeFlags flags) async {
     await _channel.invokeMethod(
@@ -166,17 +177,17 @@ class AndroidAudioManager {
           _decodeAudioDevices((await _channel.invokeMethod<List<dynamic>>(
               'getAvailableCommunicationDevices')));
 
-  /// (UNTESTED) Requires API level 31
+  /// Requires API level 31
   Future<bool> setCommunicationDevice(AndroidAudioDeviceInfo device) async =>
       (await _channel
           .invokeMethod<bool>('setCommunicationDevice', [device.id]))!;
 
-  /// (UNTESTED) Requires API level 31
+  /// Requires API level 31
   Future<AndroidAudioDeviceInfo> getCommunicationDevice() async =>
       _decodeAudioDevice(
           await _channel.invokeMethod<dynamic>('getCommunicationDevice'));
 
-  /// (UNTESTED) Requires API level 31
+  /// Requires API level 31
   Future<void> clearCommunicationDevice() async =>
       await _channel.invokeMethod('clearCommunicationDevice');
 
@@ -211,17 +222,14 @@ class AndroidAudioManager {
         .invokeMethod<bool>('isBluetoothScoAvailableOffCall'))!;
   }
 
-  /// (UNTESTED)
   Future<void> startBluetoothSco() async {
     await _channel.invokeMethod('startBluetoothSco');
   }
 
-  /// (UNTESTED)
   Future<void> stopBluetoothSco() async {
     await _channel.invokeMethod('stopBluetoothSco');
   }
 
-  /// (UNTESTED)
   Future<void> setBluetoothScoOn(bool enabled) async {
     await _channel.invokeMethod<bool>('setBluetoothScoOn', [enabled]);
   }
@@ -393,6 +401,16 @@ class AndroidAudioManager {
 
   List<AndroidAudioDeviceInfo> _decodeAudioDevices(dynamic rawList) {
     return (rawList as List<dynamic>).map(_decodeAudioDevice).toList();
+  }
+
+  AndroidScoAudioState _decodeScoAudioStateEvent(List<dynamic> args) {
+    final AndroidScoAudioStates current = decodeMapEnum(
+        AndroidScoAudioStates.values, args[0],
+        defaultValue: AndroidScoAudioStates.error);
+    final AndroidScoAudioStates previous = decodeMapEnum(
+        AndroidScoAudioStates.values, args[1],
+        defaultValue: AndroidScoAudioStates.error);
+    return AndroidScoAudioState(current, previous);
   }
 
   AndroidAudioDeviceInfo _decodeAudioDevice(dynamic raw) {
@@ -931,4 +949,66 @@ class AndroidKeyEvent {
         'downTime': downTime,
         'eventTime': eventTime,
       };
+}
+
+class AndroidScoAudioStates {
+  /// [error] there was an error trying to obtain the state
+  ///
+  /// Requires API level 8
+  static const error = AndroidScoAudioStates._(-1);
+
+  /// [disconnected] indicating that the SCO audio channel is not established
+  ///
+  /// Requires API level 8
+  static const disconnected = AndroidScoAudioStates._(0);
+
+  /// [connecting] indicating that the SCO audio channel is established
+  ///
+  /// Requires API level 8
+  static const connected = AndroidScoAudioStates._(1);
+
+  /// [connected] indicating that the SCO audio channel is being established
+  ///
+  /// Requires API level 14
+  static const connecting = AndroidScoAudioStates._(2);
+
+  static const values = {
+    -1: error,
+    0: disconnected,
+    1: connected,
+    2: connecting
+  };
+
+  final int index;
+
+  const AndroidScoAudioStates._(this.index);
+
+  @override
+  String toString() {
+    String strIndex = 'error';
+    switch (index) {
+      case 0:
+        strIndex = 'disconnected';
+        break;
+      case 1:
+        strIndex = 'connected';
+        break;
+      case 2:
+        strIndex = 'connecting';
+        break;
+    }
+    return 'AndroidScoAudioStates{$strIndex}';
+  }
+}
+
+class AndroidScoAudioState {
+  AndroidScoAudioState(this.currentState, this.previousState);
+
+  final AndroidScoAudioStates currentState;
+  final AndroidScoAudioStates previousState;
+
+  @override
+  String toString() {
+    return 'AndroidScoAudioState{currentState: $currentState, previousState: $previousState}';
+  }
 }
