@@ -1,3 +1,7 @@
+## 0.1.13
+
+* Fix compile error with older rxdart 0.26.*
+
 ## 0.1.12
 
 * Add AndroidAudioManager.scoAudioEventStream (@rwrz)
