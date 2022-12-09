@@ -69,7 +69,7 @@ class AndroidAudioManager {
       _scoAudioUpdatedEventSubject.stream;
 
   AndroidScoAudioState? get currentScoAudioState =>
-      _scoAudioUpdatedEventSubject.valueOrNull?.currentState;
+      _scoAudioUpdatedEventSubject.nvalue?.currentState;
 
   Future<bool> requestAudioFocus(AndroidAudioFocusRequest focusRequest) async {
     _onAudioFocusChanged = focusRequest.onAudioFocusChanged;
@@ -1009,4 +1009,10 @@ class AndroidScoAudioEvent {
   String toString() {
     return 'AndroidScoAudioEvent{currentState: $currentState, previousState: $previousState}';
   }
+}
+
+/// Backwards compatible extensions on rxdart's ValueStream
+extension _ValueStreamExtension<T> on ValueStream<T> {
+  /// Backwards compatible version of valueOrNull.
+  T? get nvalue => hasValue ? value : null;
 }
