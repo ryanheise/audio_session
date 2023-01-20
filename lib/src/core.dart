@@ -307,10 +307,6 @@ class AudioSession {
     } else if (_avAudioSession != null) {
       final currentRoute = await _avAudioSession!.currentRoute;
       if (includeInputs) {
-        final darwinInputs = await _avAudioSession!.availableInputs;
-        devices.addAll(darwinInputs
-            .map((port) => _darwinPort2device(port, inputPorts: darwinInputs))
-            .toSet());
         devices.addAll(currentRoute.inputs.map((port) => _darwinPort2device(
               port,
               inputPorts: currentRoute.inputs,
@@ -323,6 +319,12 @@ class AudioSession {
               inputPorts: currentRoute.inputs,
               outputPorts: currentRoute.outputs,
             )));
+      }
+      if(includeInputs) {
+        final darwinInputs = await _avAudioSession!.availableInputs;
+        devices.addAll(darwinInputs
+            .map((port) => _darwinPort2device(port, inputPorts: darwinInputs))
+            .toSet());
       }
     }
     return devices;
@@ -351,8 +353,7 @@ class AudioSession {
         return AudioDeviceType.hdmi;
       case AVAudioSessionPort.headphones:
         return inputPorts
-                .map((desc) => desc.portType)
-                .contains(AVAudioSessionPort.headsetMic)
+                .any((desc) => desc.portType == AVAudioSessionPort.headsetMic)
             ? AudioDeviceType.wiredHeadset
             : AudioDeviceType.wiredHeadphones;
       case AVAudioSessionPort.lineOut:
