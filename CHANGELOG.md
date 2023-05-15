@@ -1,6 +1,10 @@
+## 0.1.14
+
+* Update minimum flutter version to 3.0.
+
 ## 0.1.13
 
-* Fix compile error with older rxdart 0.26.*
+* Fix compile error with older rxdart 0.26.*.
 
 ## 0.1.12
 

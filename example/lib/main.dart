@@ -150,14 +150,14 @@ class _MyAppState extends State<MyApp> {
                           crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
                             Text("Input devices",
-                                style: Theme.of(context).textTheme.headline6),
+                                style: Theme.of(context).textTheme.titleLarge),
                             for (var device
                                 in devices.where((device) => device.isInput))
                               Text(
                                   '${device.name} (${describeEnum(device.type)})'),
                             SizedBox(height: 16),
                             Text("Output devices",
-                                style: Theme.of(context).textTheme.headline6),
+                                style: Theme.of(context).textTheme.titleLarge),
                             for (var device
                                 in devices.where((device) => device.isOutput))
                               Text(
