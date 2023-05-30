@@ -309,7 +309,11 @@ class AudioSession {
       if (includeInputs) {
         final darwinInputs = await _avAudioSession!.availableInputs;
         devices.addAll(darwinInputs
-            .map((port) => _darwinPort2device(port, inputPorts: darwinInputs))
+            .map((port) => _darwinPort2device(
+                  port,
+                  inputPorts: darwinInputs,
+                  outputPorts: currentRoute.outputs,
+                ))
             .toSet());
         devices.addAll(currentRoute.inputs.map((port) => _darwinPort2device(
               port,
