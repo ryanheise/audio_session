@@ -217,7 +217,7 @@ class AudioSession {
   /// session is not yet configured at the time this is called, the
   /// [fallbackConfiguration] will be set. If any of
   /// [avAudioSessionSetActiveOptions], [androidAudioFocusGainType],
-  /// [androidAudioAttributesttributes] and [androidWillPauseWhenDucked] are
+  /// [androidAudioAttributes] and [androidWillPauseWhenDucked] are
   /// speficied, they will override the configuration.
   Future<bool> setActive(
     bool active, {
