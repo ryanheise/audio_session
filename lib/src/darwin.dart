@@ -9,8 +9,8 @@ import 'package:rxdart/rxdart.dart';
 /// If you test any feature listed as UNTESTED, consider sharing whether it
 /// works on GitHub.
 class AVAudioSession {
-  static final MethodChannel _channel =
-      const MethodChannel('com.ryanheise.av_audio_session');
+  static const MethodChannel _channel =
+      MethodChannel('com.ryanheise.av_audio_session');
   static AVAudioSession? _instance;
 
   final _interruptionNotificationSubject =
@@ -30,27 +30,29 @@ class AVAudioSession {
 
   AVAudioSession._() {
     _channel.setMethodCallHandler((MethodCall call) async {
-      final List args = call.arguments;
+      final args = call.arguments as List<dynamic>;
       switch (call.method) {
         case 'onInterruptionEvent':
           _interruptionNotificationSubject
               .add(AVAudioSessionInterruptionNotification(
-            type: decodeEnum(AVAudioSessionInterruptionType.values, args[0],
+            type: decodeEnum(
+                AVAudioSessionInterruptionType.values, args[0] as int?,
                 defaultValue: AVAudioSessionInterruptionType.began),
-            options: AVAudioSessionInterruptionOptions(args[1]),
-            wasSuspended: args[2],
+            options: AVAudioSessionInterruptionOptions(args[1] as int),
+            wasSuspended: args[2] as bool?,
           ));
           break;
         case 'onRouteChange':
           AVAudioSessionRouteChange routeChange = AVAudioSessionRouteChange(
               reason: decodeEnum(
-                  AVAudioSessionRouteChangeReason.values, args[0],
+                  AVAudioSessionRouteChangeReason.values, args[0] as int?,
                   defaultValue: AVAudioSessionRouteChangeReason.unknown));
           _routeChangeSubject.add(routeChange);
           break;
         case 'onSilenceSecondaryAudioHint':
           _silenceSecondaryAudioHintSubject.add(decodeEnum(
-              AVAudioSessionSilenceSecondaryAudioHintType.values, args[0],
+              AVAudioSessionSilenceSecondaryAudioHintType.values,
+              args[0] as int?,
               defaultValue: AVAudioSessionSilenceSecondaryAudioHintType.begin));
           break;
         case 'onMediaServicesWereLost':
@@ -195,7 +197,7 @@ class AVAudioSession {
   Future<Set<AVAudioSessionPortDescription>> get availableInputs async {
     return (await _channel.invokeListMethod<dynamic>('getAvailableInputs'))!
         .map((dynamic raw) => AVAudioSessionPortDescription._fromMap(
-            _channel, raw.cast<String, dynamic>()))
+            _channel, (raw as Map<dynamic, dynamic>).cast<String, dynamic>()))
         .toSet();
   }
 
@@ -329,7 +331,6 @@ class AVAudioSession {
   //Future<bool> setAggregatedIoPreference(AVAudioSessionIOType type) async {
   //  return true;
   //}
-
 }
 
 /// The categories for [AVAudioSession].
@@ -345,22 +346,22 @@ enum AVAudioSessionCategory {
 /// The category options for [AVAudioSession].
 class AVAudioSessionCategoryOptions {
   static const AVAudioSessionCategoryOptions none =
-      const AVAudioSessionCategoryOptions(0);
+      AVAudioSessionCategoryOptions(0);
   static const AVAudioSessionCategoryOptions mixWithOthers =
-      const AVAudioSessionCategoryOptions(0x1);
+      AVAudioSessionCategoryOptions(0x1);
   static const AVAudioSessionCategoryOptions duckOthers =
-      const AVAudioSessionCategoryOptions(0x2);
+      AVAudioSessionCategoryOptions(0x2);
   static const AVAudioSessionCategoryOptions
       interruptSpokenAudioAndMixWithOthers =
-      const AVAudioSessionCategoryOptions(0x11);
+      AVAudioSessionCategoryOptions(0x11);
   static const AVAudioSessionCategoryOptions allowBluetooth =
-      const AVAudioSessionCategoryOptions(0x4);
+      AVAudioSessionCategoryOptions(0x4);
   static const AVAudioSessionCategoryOptions allowBluetoothA2dp =
-      const AVAudioSessionCategoryOptions(0x20);
+      AVAudioSessionCategoryOptions(0x20);
   static const AVAudioSessionCategoryOptions allowAirPlay =
-      const AVAudioSessionCategoryOptions(0x40);
+      AVAudioSessionCategoryOptions(0x40);
   static const AVAudioSessionCategoryOptions defaultToSpeaker =
-      const AVAudioSessionCategoryOptions(0x8);
+      AVAudioSessionCategoryOptions(0x8);
 
   final int value;
 
@@ -378,9 +379,10 @@ class AVAudioSessionCategoryOptions {
       options.value & value == options.value;
 
   @override
-  bool operator ==(Object option) =>
-      option is AVAudioSessionCategoryOptions && value == option.value;
+  bool operator ==(Object other) =>
+      other is AVAudioSessionCategoryOptions && value == other.value;
 
+  @override
   int get hashCode => value.hashCode;
 }
 
@@ -408,9 +410,9 @@ enum AVAudioSessionRouteSharingPolicy {
 /// The options for [AVAudioSession.setActive].
 class AVAudioSessionSetActiveOptions {
   static const AVAudioSessionSetActiveOptions none =
-      const AVAudioSessionSetActiveOptions(0);
+      AVAudioSessionSetActiveOptions(0);
   static const AVAudioSessionSetActiveOptions notifyOthersOnDeactivation =
-      const AVAudioSessionSetActiveOptions(1);
+      AVAudioSessionSetActiveOptions(1);
 
   final int value;
 
@@ -428,9 +430,10 @@ class AVAudioSessionSetActiveOptions {
       options.value & value == options.value;
 
   @override
-  bool operator ==(Object option) =>
-      option is AVAudioSessionSetActiveOptions && value == option.value;
+  bool operator ==(Object other) =>
+      other is AVAudioSessionSetActiveOptions && value == other.value;
 
+  @override
   int get hashCode => value.hashCode;
 }
 
@@ -461,9 +464,9 @@ enum AVAudioSessionInterruptionType { began, ended }
 /// The interruption options for [AVAudioSessionInterruptionNotification].
 class AVAudioSessionInterruptionOptions {
   static const AVAudioSessionInterruptionOptions none =
-      const AVAudioSessionInterruptionOptions(0);
+      AVAudioSessionInterruptionOptions(0);
   static const AVAudioSessionInterruptionOptions shouldResume =
-      const AVAudioSessionInterruptionOptions(1);
+      AVAudioSessionInterruptionOptions(1);
 
   final int value;
 
@@ -481,9 +484,10 @@ class AVAudioSessionInterruptionOptions {
       options.value & value == options.value;
 
   @override
-  bool operator ==(Object option) =>
-      option is AVAudioSessionInterruptionOptions && value == option.value;
+  bool operator ==(Object other) =>
+      other is AVAudioSessionInterruptionOptions && value == other.value;
 
+  @override
   int get hashCode => value.hashCode;
 }
 
@@ -522,12 +526,12 @@ class AVAudioSessionRouteDescription {
           MethodChannel channel, Map<String, dynamic> map) =>
       AVAudioSessionRouteDescription(
         inputs: (map['inputs'] as List<dynamic>)
-            .map((raw) => AVAudioSessionPortDescription._fromMap(
-                channel, raw.cast<String, dynamic>()))
+            .map((raw) => AVAudioSessionPortDescription._fromMap(channel,
+                (raw as Map<dynamic, dynamic>).cast<String, dynamic>()))
             .toSet(),
         outputs: (map['outputs'] as List<dynamic>)
-            .map((raw) => AVAudioSessionPortDescription._fromMap(
-                channel, raw.cast<String, dynamic>()))
+            .map((raw) => AVAudioSessionPortDescription._fromMap(channel,
+                (raw as Map<dynamic, dynamic>).cast<String, dynamic>()))
             .toSet(),
       );
 }
@@ -542,6 +546,7 @@ class AVAudioSessionPortDescription {
   final bool hasHardwareVoiceCallProcessing;
   final List<AVAudioSessionDataSourceDescription>? dataSources;
   final AVAudioSessionDataSourceDescription? selectedDataSource;
+  // ignore: prefer_final_fields
   AVAudioSessionDataSourceDescription? _preferredDataSource;
 
   AVAudioSessionPortDescription({
@@ -574,24 +579,29 @@ class AVAudioSessionPortDescription {
           MethodChannel channel, Map<String, dynamic> map) =>
       AVAudioSessionPortDescription(
         channel: channel,
-        portName: map['portName'],
-        portType: decodeEnum(AVAudioSessionPort.values, map['portType'],
+        portName: map['portName'] as String,
+        portType: decodeEnum(AVAudioSessionPort.values, map['portType'] as int?,
             defaultValue: AVAudioSessionPort.builtInMic),
         channels: [],
-        uid: map['uid'],
-        hasHardwareVoiceCallProcessing: map['hasHardwareVoiceCallProcessing'],
+        uid: map['uid'] as String,
+        hasHardwareVoiceCallProcessing:
+            map['hasHardwareVoiceCallProcessing'] as bool,
         dataSources: (map['dataSources'] as List<dynamic>?)
-            ?.map((raw) => AVAudioSessionDataSourceDescription._fromMap(
-                channel, raw.cast<String, dynamic>()))
+            ?.map((raw) => AVAudioSessionDataSourceDescription._fromMap(channel,
+                (raw as Map<dynamic, dynamic>).cast<String, dynamic>()))
             .toList(),
         selectedDataSource: map['selectedDataSource'] == null
             ? null
             : AVAudioSessionDataSourceDescription._fromMap(
-                channel, map['selectedDataSource'].cast<String, dynamic>()),
+                channel,
+                (map['selectedDataSource'] as Map<dynamic, dynamic>)
+                    .cast<String, dynamic>()),
         preferredDataSource: map['preferredDataSource'] == null
             ? null
             : AVAudioSessionDataSourceDescription._fromMap(
-                channel, map['preferredDataSource'].cast<String, dynamic>()),
+                channel,
+                (map['preferredDataSource'] as Map<dynamic, dynamic>)
+                    .cast<String, dynamic>()),
       );
 
   Map<String, dynamic> _toMap() => {
@@ -609,6 +619,7 @@ class AVAudioSessionPortDescription {
   bool operator ==(Object other) =>
       other is AVAudioSessionPortDescription && uid == other.uid;
 
+  @override
   int get hashCode => uid.hashCode;
 }
 
@@ -696,31 +707,32 @@ class AVAudioSessionDataSourceDescription {
           MethodChannel channel, Map<String, dynamic> map) =>
       AVAudioSessionDataSourceDescription(
         channel: channel,
-        id: map['id'],
-        name: map['name'],
+        id: map['id'] as int,
+        name: map['name'] as String,
         location: map['location'] == null
             ? null
-            : decodeEnum(AVAudioSessionLocation.values, map['location'],
+            : decodeEnum(AVAudioSessionLocation.values, map['location'] as int?,
                 defaultValue: AVAudioSessionLocation.lower),
         orientation: map['orientation'] == null
             ? null
-            : decodeEnum(AVAudioSessionOrientation.values, map['orientation'],
+            : decodeEnum(
+                AVAudioSessionOrientation.values, map['orientation'] as int?,
                 defaultValue: AVAudioSessionOrientation.top),
         selectedPolarPattern: map['selectedPolarPattern'] == null
             ? null
-            : decodeEnum(
-                AVAudioSessionPolarPattern.values, map['selectedPolarPattern'],
+            : decodeEnum(AVAudioSessionPolarPattern.values,
+                map['selectedPolarPattern'] as int?,
                 defaultValue: AVAudioSessionPolarPattern.stereo),
         supportedPolarPatterns:
             (map['supportedPolarPatterns'] as List<dynamic>?)
                 ?.map((index) => decodeEnum(
-                    AVAudioSessionPolarPattern.values, index,
+                    AVAudioSessionPolarPattern.values, index as int?,
                     defaultValue: AVAudioSessionPolarPattern.stereo))
                 .toList(),
         preferredPolarPattern: map['preferredPolarPattern'] == null
             ? null
-            : decodeEnum(
-                AVAudioSessionPolarPattern.values, map['preferredPolarPattern'],
+            : decodeEnum(AVAudioSessionPolarPattern.values,
+                map['preferredPolarPattern'] as int?,
                 defaultValue: AVAudioSessionPolarPattern.stereo),
       );
 

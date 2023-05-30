@@ -19,7 +19,7 @@ import 'darwin.dart';
 /// plugins will call this before they play or record audio.
 class AudioSession {
   static const MethodChannel _channel =
-      const MethodChannel('com.ryanheise.audio_session');
+      MethodChannel('com.ryanheise.audio_session');
   static AudioSession? _instance;
 
   /// The singleton instance across all Flutter engines.
@@ -30,7 +30,8 @@ class AudioSession {
         // TODO: Use this code without the '?' once a Dart bug is fixed.
         // (similar instances occur elsewhere)
         //Map? data = await _channel.invokeMethod<Map>('getConfiguration');
-        Map? data = await _channel.invokeMethod<Map?>('getConfiguration');
+        final data =
+            await _channel.invokeMapMethod<String, dynamic>('getConfiguration');
         if (data != null) {
           _instance!._configuration = AudioSessionConfiguration.fromJson(data);
         }
@@ -43,10 +44,9 @@ class AudioSession {
     return _instance!;
   }
 
-  AndroidAudioManager? _androidAudioManager =
+  final _androidAudioManager =
       !kIsWeb && Platform.isAndroid ? AndroidAudioManager() : null;
-  AVAudioSession? _avAudioSession =
-      !kIsWeb && Platform.isIOS ? AVAudioSession() : null;
+  final _avAudioSession = !kIsWeb && Platform.isIOS ? AVAudioSession() : null;
   AudioSessionConfiguration? _configuration;
   final _configurationSubject = BehaviorSubject<AudioSessionConfiguration>();
   final _interruptionEventSubject = PublishSubject<AudioInterruptionEvent>();
@@ -148,11 +148,12 @@ class AudioSession {
       }
     });
     _channel.setMethodCallHandler((MethodCall call) async {
-      final List? args = call.arguments;
+      final args = call.arguments as List<dynamic>?;
       switch (call.method) {
         case 'onConfigurationChanged':
-          _configurationSubject.add(
-              _configuration = AudioSessionConfiguration.fromJson(args![0]));
+          _configurationSubject.add(_configuration =
+              AudioSessionConfiguration.fromJson(
+                  (args![0] as Map<dynamic, dynamic>).cast<String, dynamic>()));
           break;
       }
     });
@@ -251,7 +252,6 @@ class AudioSession {
           willPauseWhenDucked: androidWillPauseWhenDucked ??
               configuration.androidWillPauseWhenDucked,
           onAudioFocusChanged: (focus) {
-            print("core onAudioFocusChanged");
             switch (focus) {
               case AndroidAudioFocus.gain:
                 _interruptionEventSubject.add(AudioInterruptionEvent(
@@ -505,35 +505,39 @@ class AudioSessionConfiguration {
     this.androidWillPauseWhenDucked,
   });
 
-  AudioSessionConfiguration.fromJson(Map data)
+  AudioSessionConfiguration.fromJson(Map<String, dynamic> data)
       : this(
           avAudioSessionCategory: data['avAudioSessionCategory'] == null
               ? null
-              : AVAudioSessionCategory.values[data['avAudioSessionCategory']],
+              : AVAudioSessionCategory
+                  .values[data['avAudioSessionCategory'] as int],
           avAudioSessionCategoryOptions:
               data['avAudioSessionCategoryOptions'] == null
                   ? null
                   : AVAudioSessionCategoryOptions(
-                      data['avAudioSessionCategoryOptions']),
+                      data['avAudioSessionCategoryOptions'] as int),
           avAudioSessionMode: data['avAudioSessionMode'] == null
               ? null
-              : AVAudioSessionMode.values[data['avAudioSessionMode']],
+              : AVAudioSessionMode.values[data['avAudioSessionMode'] as int],
           avAudioSessionRouteSharingPolicy:
               data['avAudioSessionRouteSharingPolicy'] == null
                   ? null
                   : AVAudioSessionRouteSharingPolicy
-                      .values[data['avAudioSessionRouteSharingPolicy']],
+                      .values[data['avAudioSessionRouteSharingPolicy'] as int],
           avAudioSessionSetActiveOptions:
               data['avAudioSessionSetActiveOptions'] == null
                   ? null
                   : AVAudioSessionSetActiveOptions(
-                      data['avAudioSessionSetActiveOptions']),
+                      data['avAudioSessionSetActiveOptions'] as int),
           androidAudioAttributes: data['androidAudioAttributes'] == null
               ? null
-              : AndroidAudioAttributes.fromJson(data['androidAudioAttributes']),
+              : AndroidAudioAttributes.fromJson(
+                  (data['androidAudioAttributes'] as Map<dynamic, dynamic>)
+                      .cast<String, dynamic>()),
           androidAudioFocusGainType: AndroidAudioFocusGainType
               .values[data['androidAudioFocusGainType']]!,
-          androidWillPauseWhenDucked: data['androidWillPauseWhenDucked'],
+          androidWillPauseWhenDucked:
+              data['androidWillPauseWhenDucked'] as bool?,
         );
 
   /// A recipe for creating an audio configuration for a music player.
@@ -593,7 +597,7 @@ class AudioSessionConfiguration {
       );
 
   // Converts this instance to JSON.
-  Map toJson() => {
+  Map<String, dynamic> toJson() => {
         'avAudioSessionCategory': avAudioSessionCategory?.index,
         'avAudioSessionCategoryOptions': avAudioSessionCategoryOptions?.value,
         'avAudioSessionMode': avAudioSessionMode?.index,

@@ -1,3 +1,9 @@
+## 0.1.15
+
+* AGP 8 compatibility (@josephcrowell).
+* Update AGP to 7.3.0.
+* Apply flutter_lints.
+
 ## 0.1.14
 
 * Update minimum flutter version to 3.0.
