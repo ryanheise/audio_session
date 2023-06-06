@@ -1,3 +1,7 @@
+## 0.1.16
+
+* Use lowercase topics.
+
 ## 0.1.15
 
 * AGP 8 compatibility (@josephcrowell).
