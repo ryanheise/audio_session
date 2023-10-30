@@ -322,7 +322,11 @@ public class AndroidAudioManager implements MethodCallHandler {
                 return true;
             }
             Map<?, ?> request = (Map<?, ?>)args.get(0);
-            AudioFocusRequestCompat.Builder builder = new AudioFocusRequestCompat.Builder((Integer)request.get("gainType"));
+            Integer gainType = (Integer)request.get("gainType");
+            if (gainType == 0) {
+                return true;
+            }
+            AudioFocusRequestCompat.Builder builder = new AudioFocusRequestCompat.Builder(gainType);
             builder.setOnAudioFocusChangeListener(focusChange -> {
                 if (focusChange == AudioManager.AUDIOFOCUS_LOSS) abandonAudioFocus();
                 invokeMethod("onAudioFocusChanged", focusChange);
