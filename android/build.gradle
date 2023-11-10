@@ -34,7 +34,7 @@ android {
     compileSdkVersion 33
 
     defaultConfig {
-        minSdkVersion 16
+        minSdkVersion 23
     }
 
     lintOptions {
