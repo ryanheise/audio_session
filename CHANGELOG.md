@@ -1,3 +1,7 @@
+## 0.1.17
+
+* Fix compile error with Android SDK 34.
+
 ## 0.1.16
 
 * Use lowercase topics.

@@ -444,10 +444,12 @@ public class AndroidAudioManager implements MethodCallHandler {
             audioManager.clearCommunicationDevice();
             return null;
         }
+        @SuppressWarnings("deprecation")
         private Object setSpeakerphoneOn(boolean enabled) {
             audioManager.setSpeakerphoneOn(enabled);
             return null;
         }
+        @SuppressWarnings("deprecation")
         private Object isSpeakerphoneOn() {
             return audioManager.isSpeakerphoneOn();
         }
@@ -463,10 +465,12 @@ public class AndroidAudioManager implements MethodCallHandler {
         private Object isBluetoothScoAvailableOffCall() {
             return audioManager.isBluetoothScoAvailableOffCall();
         }
+        @SuppressWarnings("deprecation")
         private Object startBluetoothSco() {
             audioManager.startBluetoothSco();
             return null;
         }
+        @SuppressWarnings("deprecation")
         private Object stopBluetoothSco() {
             audioManager.stopBluetoothSco();
             return null;
@@ -475,6 +479,7 @@ public class AndroidAudioManager implements MethodCallHandler {
             audioManager.setBluetoothScoOn(enabled);
             return null;
         }
+        @SuppressWarnings("deprecation")
         private Object isBluetoothScoOn() {
             return audioManager.isBluetoothScoOn();
         }
