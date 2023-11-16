@@ -1,3 +1,8 @@
+## 0.1.18
+
+* Fix parameter type in AVAudioSessionCategoryOptions.contains (@kainosk).
+* Fix parameter type in AVAudioSessionSetActiveOptions.contains (@kainosk).
+
 ## 0.1.17
 
 * Fix compile error with Android SDK 34.
