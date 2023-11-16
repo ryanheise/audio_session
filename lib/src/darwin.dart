@@ -375,7 +375,7 @@ class AVAudioSessionCategoryOptions {
           AVAudioSessionCategoryOptions option) =>
       AVAudioSessionCategoryOptions(value & option.value);
 
-  bool contains(AVAudioSessionInterruptionOptions options) =>
+  bool contains(AVAudioSessionCategoryOptions options) =>
       options.value & value == options.value;
 
   @override
@@ -426,7 +426,7 @@ class AVAudioSessionSetActiveOptions {
           AVAudioSessionSetActiveOptions option) =>
       AVAudioSessionSetActiveOptions(value & option.value);
 
-  bool contains(AVAudioSessionInterruptionOptions options) =>
+  bool contains(AVAudioSessionSetActiveOptions options) =>
       options.value & value == options.value;
 
   @override
