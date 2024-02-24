@@ -195,19 +195,27 @@ static NSHashTable<DarwinAudioSession *> *sessions = nil;
 }
 
 - (void)setActive:(NSArray *)args result:(FlutterResult)result {
-    NSError *error = nil;
-    BOOL active = [args[0] boolValue];
-    BOOL status;
-    if (args[1] != (id)[NSNull null]) {
-        status = [[AVAudioSession sharedInstance] setActive:active withOptions:[args[1] integerValue] error:&error];
-    } else {
-        status = [[AVAudioSession sharedInstance] setActive:active error:&error];
-    }
-    if (error) {
-        [self sendError:error result:result];
-    } else {
-        result(@(status));
-    }
+    // Dispatch this task to a background thread to avoid jank
+    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+        NSError *error = nil;
+        BOOL active = [args[0] boolValue];
+        BOOL status;
+
+        if (args[1] != (id)[NSNull null]) {
+            status = [[AVAudioSession sharedInstance] setActive:active withOptions:[args[1] integerValue] error:&error];
+        } else {
+            status = [[AVAudioSession sharedInstance] setActive:active error:&error];
+        }
+
+        // Once the operation is done, switch back to the main thread to send the result
+        dispatch_async(dispatch_get_main_queue(), ^{
+            if (error) {
+                [self sendError:error result:result];
+            } else {
+                result(@(status));
+            }
+        });
+    });
 }
 
 - (void)getRecordPermission:(NSArray *)args result:(FlutterResult)result {
