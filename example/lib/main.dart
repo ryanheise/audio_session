@@ -1,7 +1,6 @@
 import 'dart:math';
 
 import 'package:audio_session/audio_session.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:just_audio/just_audio.dart' as ja;
 
@@ -153,15 +152,13 @@ class _MyAppState extends State<MyApp> {
                                 style: Theme.of(context).textTheme.titleLarge),
                             for (var device
                                 in devices.where((device) => device.isInput))
-                              Text(
-                                  '${device.name} (${describeEnum(device.type)})'),
+                              Text('${device.name} (${device.type.name})'),
                             SizedBox(height: 16),
                             Text("Output devices",
                                 style: Theme.of(context).textTheme.titleLarge),
                             for (var device
                                 in devices.where((device) => device.isOutput))
-                              Text(
-                                  '${device.name} (${describeEnum(device.type)})'),
+                              Text('${device.name} (${device.type.name})'),
                           ],
                         );
                       },

@@ -1,3 +1,8 @@
+## 0.1.19
+
+* Run setActive in a thread on iOS to avoid jank (@jointhejourney).
+* Update minimum iOS version to 12.0.
+
 ## 0.1.18
 
 * Fix parameter type in AVAudioSessionCategoryOptions.contains (@kainosk).
