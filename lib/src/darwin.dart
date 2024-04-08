@@ -167,6 +167,14 @@ class AVAudioSession {
   Future<bool> get secondaryAudioShouldBeSilencedHint async => (await _channel
       .invokeMethod<bool>('getSecondaryAudioShouldBeSilencedHint'))!;
 
+  Future<bool> get prefersNoInterruptionsFromSystemAlerts async =>
+      (await _channel.invokeMethod<bool>(
+          'getPrefersNoInterruptionsFromSystemAlerts'))!;
+
+  Future<void> setPrefersNoInterruptionsFromSystemAlerts(bool noInterruptions) =>
+      _channel.invokeMethod(
+          "setPrefersNoInterruptionsFromSystemAlerts", [noInterruptions]);
+
   /// (UNTESTED)
   Future<bool> get allowHapticsAndSystemSoundsDuringRecording async =>
       (await _channel.invokeMethod<bool>(
