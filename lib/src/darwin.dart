@@ -281,16 +281,17 @@ class AVAudioSession {
 
   //Future<void> setPreferredOutputNumberOfChannels(int count) async {}
 
-  //Future<double> get inputGain async {
-  //  // TODO: key/value observing
-  //  return 0.5;
-  //}
+  Future<double?> getInputGain() async =>
+  (await _channel.invokeMethod<double>("getInputGain"));
 
-  //Future<bool> get inputGainSettable async {
-  //  return false;
-  //}
 
-  //Future<void> setInputGain(double gain) async {}
+  Future<bool?> get inputGainSettable async {
+   return await _channel.invokeMethod<bool>("isInputGainSettable");
+  }
+
+  Future<void> setInputGain(double gain) async {
+    _channel.invokeMethod("setInputGain", [gain]);
+  }
 
   //Future<double> get outputVolume async {
   //  return 1.0;

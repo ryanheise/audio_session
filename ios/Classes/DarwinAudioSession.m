@@ -86,7 +86,14 @@ static NSHashTable<DarwinAudioSession *> *sessions = nil;
         [self getInputLatency:args result:result];
     } else if ([@"getOutputLatency" isEqualToString:call.method]) {
         [self getOutputLatency:args result:result];
-    } else {
+    } else if ([@"getInputGain" isEqualToString:call.method]) {
+        [self getInputGain:args result:result];
+    } else if ([@"setInputGain" isEqualToString:call.method]) {
+        [self setInputGain:args result:result];
+    } else if ([@"isInputGainSettable" isEqualToString:call.method]){
+        [self getIsInputGainSettable:args result:result];
+    }
+    else {
         result(FlutterMethodNotImplemented);
     }
 }
@@ -474,6 +481,31 @@ static NSHashTable<DarwinAudioSession *> *sessions = nil;
 
 - (void)getOutputLatency:(NSArray *)args result:(FlutterResult)result {
     result(@((long long)([[AVAudioSession sharedInstance] outputLatency] * 1000000.0)));
+}
+
+- (void)getInputGain:(NSArray *)args result:(FlutterResult)result {
+    result(@([[AVAudioSession sharedInstance] inputGain]));
+}
+
+- (void)getIsInputGainSettable:(NSArray *)args result:(FlutterResult)result {
+    result(@([[AVAudioSession sharedInstance] isInputGainSettable]));
+}
+
+- (void)setInputGain:(NSArray *)args result:(FlutterResult)result {
+    
+     if (@available(iOS 6.0, *)) {
+         NSError *error = nil;
+         NSNumber *gainValue = (NSNumber *)args[0];
+         [[AVAudioSession sharedInstance] setInputGain:gainValue.floatValue error:&error];
+         
+         if (error) {
+             [self sendError:error result:result];
+         } else {
+             result(nil);
+         }
+     } else {
+         result(nil);
+     }
 }
 
 - (AVAudioSessionCategory)flutterToCategory:(NSNumber *)categoryIndex {
