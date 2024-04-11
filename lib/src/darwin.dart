@@ -289,8 +289,8 @@ class AVAudioSession {
    return await _channel.invokeMethod<bool>("isInputGainSettable");
   }
 
-  Future<void> setInputGain(double gain) async {
-    _channel.invokeMethod("setInputGain", [gain]);
+  Future<bool?> setInputGain(double gain) async {
+   return await _channel.invokeMethod("setInputGain", [gain]);
   }
 
   //Future<double> get outputVolume async {

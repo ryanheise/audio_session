@@ -484,11 +484,21 @@ static NSHashTable<DarwinAudioSession *> *sessions = nil;
 }
 
 - (void)getInputGain:(NSArray *)args result:(FlutterResult)result {
-    result(@([[AVAudioSession sharedInstance] inputGain]));
+    if (@available(iOS 6.0, *)) {
+        result(@([[AVAudioSession sharedInstance] inputGain]));
+    }
+    else{
+        result(nil);
+    }
 }
 
 - (void)getIsInputGainSettable:(NSArray *)args result:(FlutterResult)result {
-    result(@([[AVAudioSession sharedInstance] isInputGainSettable]));
+    if (@available(iOS 6.0, *)) {
+        result(@([[AVAudioSession sharedInstance] isInputGainSettable]));
+    }
+    else{
+        result(nil);
+    }
 }
 
 - (void)setInputGain:(NSArray *)args result:(FlutterResult)result {
@@ -496,13 +506,7 @@ static NSHashTable<DarwinAudioSession *> *sessions = nil;
      if (@available(iOS 6.0, *)) {
          NSError *error = nil;
          NSNumber *gainValue = (NSNumber *)args[0];
-         [[AVAudioSession sharedInstance] setInputGain:gainValue.floatValue error:&error];
-         
-         if (error) {
-             [self sendError:error result:result];
-         } else {
-             result(nil);
-         }
+         result(@([[AVAudioSession sharedInstance] setInputGain:gainValue.floatValue error:&error]));
      } else {
          result(nil);
      }
