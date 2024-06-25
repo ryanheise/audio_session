@@ -3,7 +3,7 @@ description: Demonstrates how to use the audio_session plugin.
 
 # The following line prevents the package from being accidentally published to
 # pub.dev using `pub publish`. This is preferred for private packages.
-publish_to: 'none' # Remove this line if you wish to publish to pub.dev
+publish_to: "none" # Remove this line if you wish to publish to pub.dev
 
 environment:
   sdk: ">=2.17.0 <4.0.0"
@@ -11,7 +11,11 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  just_audio: ^0.9.31
+  just_audio:
+    git:
+      url: git@github.com:arturograu/just_audio.git
+      ref: chore/#1265-support-rxdart-0.28.0
+      path: just_audio
   audio_session:
     path: ../
 
@@ -30,7 +34,6 @@ dependency_overrides:
 
 # The following section is specific to Flutter.
 flutter:
-
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in
   # the material Icons class.
