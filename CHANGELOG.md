@@ -1,3 +1,7 @@
+## 0.1.20
+
+* Support rxdart 0.28.x.
+
 ## 0.1.19
 
 * Run setActive in a thread on iOS to avoid jank (@jointhejourney).
