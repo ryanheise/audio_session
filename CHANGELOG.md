@@ -1,3 +1,7 @@
+## 0.1.21
+
+* Fix compile error with JDK 21 (@bartekpacia).
+
 ## 0.1.20
 
 * Support rxdart 0.28.x.
