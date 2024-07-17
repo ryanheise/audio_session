@@ -593,7 +593,7 @@ public class AndroidAudioManager implements MethodCallHandler {
 
         private Object isHapticPlaybackSupported() {
             requireApi(29);
-            return audioManager.isHapticPlaybackSupported();
+            return AudioManager.isHapticPlaybackSupported();
         }
 
         private void registerNoisyReceiver() {
