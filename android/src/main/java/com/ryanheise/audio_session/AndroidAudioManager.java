@@ -606,7 +606,11 @@ public class AndroidAudioManager implements MethodCallHandler {
                     }
                 }
             };
+            if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU){
+                applicationContext.registerReceiver(noisyReceiver, new IntentFilter(AudioManager.ACTION_AUDIO_BECOMING_NOISY), Context.RECEIVER_EXPORTED);
+            }else{
             applicationContext.registerReceiver(noisyReceiver, new IntentFilter(AudioManager.ACTION_AUDIO_BECOMING_NOISY));
+            }
         }
 
         private void unregisterNoisyReceiver() {
@@ -628,7 +632,11 @@ public class AndroidAudioManager implements MethodCallHandler {
                     );
                 }
             };
-            applicationContext.registerReceiver(scoReceiver, new IntentFilter(AudioManager.ACTION_SCO_AUDIO_STATE_UPDATED));
+            if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU){
+                applicationContext.registerReceiver(scoReceiver, new IntentFilter(AudioManager.ACTION_SCO_AUDIO_STATE_UPDATED), Context.RECEIVER_EXPORTED);
+            }else{
+                applicationContext.registerReceiver(scoReceiver, new IntentFilter(AudioManager.ACTION_SCO_AUDIO_STATE_UPDATED));
+            }
         }
 
         private void unregisterScoReceiver() {
