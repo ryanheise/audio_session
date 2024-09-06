@@ -362,11 +362,11 @@ public class AndroidAudioManager implements MethodCallHandler {
                     getLong(rawKeyEvent.get("downTime")),
                     getLong(rawKeyEvent.get("eventTime")),
                     (Integer)rawKeyEvent.get("action"),
-                    (Integer)rawKeyEvent.get("code"),
-                    (Integer)rawKeyEvent.get("repeat"),
+                    (Integer)rawKeyEvent.get("keyCode"),
+                    (Integer)rawKeyEvent.get("repeatCount"),
                     (Integer)rawKeyEvent.get("metaState"),
                     (Integer)rawKeyEvent.get("deviceId"),
-                    (Integer)rawKeyEvent.get("scancode"),
+                    (Integer)rawKeyEvent.get("scanCode"),
                     (Integer)rawKeyEvent.get("flags"),
                     (Integer)rawKeyEvent.get("source"));
             audioManager.dispatchMediaKeyEvent(keyEvent);
