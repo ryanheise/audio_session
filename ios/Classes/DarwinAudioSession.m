@@ -201,10 +201,15 @@ static NSHashTable<DarwinAudioSession *> *sessions = nil;
         BOOL active = [args[0] boolValue];
         BOOL status;
 
-        if (args[1] != (id)[NSNull null]) {
-            status = [[AVAudioSession sharedInstance] setActive:active withOptions:[args[1] integerValue] error:&error];
-        } else {
-            status = [[AVAudioSession sharedInstance] setActive:active error:&error];
+        @try {
+            if (args[1] != (id)[NSNull null]) {
+                status = [[AVAudioSession sharedInstance] setActive:active withOptions:[args[1] integerValue] error:&error];
+            } else {
+                status = [[AVAudioSession sharedInstance] setActive:active error:&error];
+            }
+        } @catch (NSException *exception) {
+            error = [NSError errorWithDomain:@"com.ryanheise.audioSession" code:500 userInfo:@{NSLocalizedDescriptionKey: exception.reason}];
+            status = NO;
         }
 
         // Once the operation is done, switch back to the main thread to send the result
