@@ -1,5 +1,6 @@
 ## 0.1.22
 
+* Fix dispatchMediaKeyEvent error (@yellowfisherz).
 * Handle iOS exception in setActive (@lsslu).
 
 ## 0.1.21

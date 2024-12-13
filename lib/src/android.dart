@@ -919,6 +919,7 @@ class AndroidGetAudioDevicesFlags {
 class AndroidKeyEvent {
   final int deviceId;
   final int source;
+  @Deprecated("Internal API")
   final int displayId;
   final int metaState;
   final int action;
@@ -932,7 +933,7 @@ class AndroidKeyEvent {
   AndroidKeyEvent({
     required this.deviceId,
     required this.source,
-    required this.displayId,
+    @Deprecated("Internal API") this.displayId = -1,
     required this.metaState,
     required this.action,
     required this.keyCode,
@@ -946,7 +947,6 @@ class AndroidKeyEvent {
   Map<String, dynamic> _toMap() => <String, dynamic>{
         'deviceId': deviceId,
         'source': source,
-        'displayId': displayId,
         'metaState': metaState,
         'action': action,
         'keyCode': keyCode,
