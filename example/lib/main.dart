@@ -5,10 +5,12 @@ import 'package:flutter/material.dart';
 import 'package:just_audio/just_audio.dart' as ja;
 
 void main() {
-  runApp(MyApp());
+  runApp(const MyApp());
 }
 
 class MyApp extends StatefulWidget {
+  const MyApp({super.key});
+
   @override
   _MyAppState createState() => _MyAppState();
 }
@@ -42,7 +44,7 @@ class _MyAppState extends State<MyApp> {
     // order to demonstrate manual configuration.
     bool playInterrupted = false;
     audioSession.becomingNoisyEventStream.listen((_) {
-      print('PAUSE');
+      debugPrint('PAUSE');
       _player.pause();
     });
     _player.playingStream.listen((playing) {
@@ -52,8 +54,8 @@ class _MyAppState extends State<MyApp> {
       }
     });
     audioSession.interruptionEventStream.listen((event) {
-      print('interruption begin: ${event.begin}');
-      print('interruption type: ${event.type}');
+      debugPrint('interruption begin: ${event.begin}');
+      debugPrint('interruption type: ${event.type}');
       if (event.begin) {
         switch (event.type) {
           case AudioInterruptionType.duck:
@@ -88,8 +90,8 @@ class _MyAppState extends State<MyApp> {
       }
     });
     audioSession.devicesChangedEventStream.listen((event) {
-      print('Devices added: ${event.devicesAdded}');
-      print('Devices removed: ${event.devicesRemoved}');
+      debugPrint('Devices added: ${event.devicesAdded}');
+      debugPrint('Devices removed: ${event.devicesRemoved}');
     });
   }
 

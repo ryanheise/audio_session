@@ -1,14 +1,14 @@
 name: audio_session
 description: Sets the iOS audio session category and Android audio attributes for your app, and manages your app's audio focus, mixing and ducking behaviour.
-version: 0.1.21
+version: 0.1.22
 homepage: https://github.com/ryanheise/audio_session
 topics:
   - audio
   - audio-session
 
 environment:
-  sdk: ">=2.17.0 <4.0.0"
-  flutter: ">=3.0.0"
+  sdk: ^3.4.0
+  flutter: ">=3.22.0"
 
 dependencies:
   flutter:
@@ -21,7 +21,7 @@ dependencies:
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  flutter_lints: ^2.0.1
+  flutter_lints: ^5.0.0
 
 flutter:
   plugin:

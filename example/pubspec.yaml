@@ -6,7 +6,8 @@ description: Demonstrates how to use the audio_session plugin.
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 
 environment:
-  sdk: ">=2.17.0 <4.0.0"
+  sdk: ^3.4.0
+  flutter: ">=3.22.0"
 
 dependencies:
   flutter:
@@ -18,6 +19,7 @@ dependencies:
 dev_dependencies:
   flutter_test:
     sdk: flutter
+  flutter_lints: ^5.0.0
 
 dependency_overrides:
   # When running the local version of audio_session in the parent directory, we

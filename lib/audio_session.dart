@@ -1,4 +1,4 @@
-library audio_session;
+library;
 
 export 'src/android.dart';
 export 'src/core.dart';
