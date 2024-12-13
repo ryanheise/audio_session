@@ -92,7 +92,7 @@ class AudioSession {
         // TODO: Check specifically if headphones were unplugged.
         _becomingNoisyEventSubject.add(null);
       }
-      final currentRoute = await _avAudioSession!.currentRoute;
+      final currentRoute = await _avAudioSession.currentRoute;
       final previousRoute = _previousAVAudioSessionRoute ?? currentRoute;
       _previousAVAudioSessionRoute = currentRoute;
       final inputPortsAdded =
@@ -302,12 +302,12 @@ class AudioSession {
       var flags = AndroidGetAudioDevicesFlags.none;
       if (includeInputs) flags |= AndroidGetAudioDevicesFlags.inputs;
       if (includeOutputs) flags |= AndroidGetAudioDevicesFlags.outputs;
-      final androidDevices = await _androidAudioManager!.getDevices(flags);
+      final androidDevices = await _androidAudioManager.getDevices(flags);
       devices.addAll(androidDevices.map(_androidDevice2device).toSet());
     } else if (_avAudioSession != null) {
-      final currentRoute = await _avAudioSession!.currentRoute;
+      final currentRoute = await _avAudioSession.currentRoute;
       if (includeInputs) {
-        final darwinInputs = await _avAudioSession!.availableInputs;
+        final darwinInputs = await _avAudioSession.availableInputs;
         devices.addAll(darwinInputs
             .map((port) => _darwinPort2device(
                   port,
