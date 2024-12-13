@@ -13,6 +13,7 @@ import android.os.Handler;
 import android.os.Looper;
 import android.util.Pair;
 import android.view.KeyEvent;
+import androidx.core.content.ContextCompat;
 import androidx.media.AudioAttributesCompat;
 import androidx.media.AudioFocusRequestCompat;
 import androidx.media.AudioManagerCompat;
@@ -606,7 +607,7 @@ public class AndroidAudioManager implements MethodCallHandler {
                     }
                 }
             };
-            applicationContext.registerReceiver(noisyReceiver, new IntentFilter(AudioManager.ACTION_AUDIO_BECOMING_NOISY));
+            ContextCompat.registerReceiver(applicationContext, noisyReceiver, new IntentFilter(AudioManager.ACTION_AUDIO_BECOMING_NOISY), ContextCompat.RECEIVER_EXPORTED);
         }
 
         private void unregisterNoisyReceiver() {
@@ -628,7 +629,7 @@ public class AndroidAudioManager implements MethodCallHandler {
                     );
                 }
             };
-            applicationContext.registerReceiver(scoReceiver, new IntentFilter(AudioManager.ACTION_SCO_AUDIO_STATE_UPDATED));
+            ContextCompat.registerReceiver(applicationContext, scoReceiver, new IntentFilter(AudioManager.ACTION_SCO_AUDIO_STATE_UPDATED), ContextCompat.RECEIVER_EXPORTED);
         }
 
         private void unregisterScoReceiver() {
