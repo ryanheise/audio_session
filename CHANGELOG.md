@@ -1,5 +1,6 @@
 ## 0.1.22
 
+* Add inputGain features to AVAudioSession (@Volsavr).
 * Export Android broadcast receivers for SDK >= 33 (@techieasif).
 * Fix dispatchMediaKeyEvent error (@yellowfisherz).
 * Handle iOS exception in setActive (@lsslu).
