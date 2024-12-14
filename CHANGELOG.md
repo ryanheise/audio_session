@@ -1,5 +1,6 @@
 ## 0.1.22
 
+* Add prefersNoInterruptionsFromSystemAlerts (@AlexBacich).
 * Add inputGain features to AVAudioSession (@Volsavr).
 * Export Android broadcast receivers for SDK >= 33 (@techieasif).
 * Fix dispatchMediaKeyEvent error (@yellowfisherz).
