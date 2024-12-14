@@ -1,5 +1,6 @@
 package com.ryanheise.audio_session;
 
+import android.annotation.TargetApi;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -13,6 +14,7 @@ import android.os.Handler;
 import android.os.Looper;
 import android.util.Pair;
 import android.view.KeyEvent;
+import androidx.annotation.NonNull;
 import androidx.core.content.ContextCompat;
 import androidx.media.AudioAttributesCompat;
 import androidx.media.AudioFocusRequestCompat;
@@ -33,10 +35,10 @@ public class AndroidAudioManager implements MethodCallHandler {
     // TODO: synchronize access
     private static Singleton singleton;
 
-    private BinaryMessenger messenger;
-    private MethodChannel channel;
+    BinaryMessenger messenger;
+    MethodChannel channel;
 
-    public AndroidAudioManager(Context applicationContext, BinaryMessenger messenger) {
+    public AndroidAudioManager(@NonNull Context applicationContext, @NonNull BinaryMessenger messenger) {
         if (singleton == null)
             singleton = new Singleton(applicationContext);
         this.messenger = messenger;
@@ -46,7 +48,7 @@ public class AndroidAudioManager implements MethodCallHandler {
     }
 
     @Override
-    public void onMethodCall(final MethodCall call, final Result result) {
+    public void onMethodCall(@NonNull final MethodCall call, @NonNull final Result result) {
         try {
             List<?> args = (List<?>)call.arguments;
             switch (call.method) {
@@ -260,30 +262,6 @@ public class AndroidAudioManager implements MethodCallHandler {
         private Object audioDeviceCallback;
         private List<AudioDeviceInfo> devices = new ArrayList<AudioDeviceInfo>();
 
-        private static List<?> encodeAudioDevices(AudioDeviceInfo[] devices) {
-            ArrayList<Map<String, Object>> result = new ArrayList<>();
-            for (AudioDeviceInfo device : devices) {
-                result.add(encodeAudioDevice(device));
-            }
-            return result;
-        }
-
-        private static Map<String, Object> encodeAudioDevice(AudioDeviceInfo device) {
-            return mapOf(
-                "id", device.getId(),
-                "productName", device.getProductName(),
-                "address", device.getAddress(),
-                "isSource", device.isSource(),
-                "isSink", device.isSink(),
-                "sampleRates", device.getSampleRates(),
-                "channelMasks", device.getChannelMasks(),
-                "channelIndexMasks", device.getChannelIndexMasks(),
-                "channelCounts", device.getChannelCounts(),
-                "encodings", device.getEncodings(),
-                "type", device.getType()
-            );
-        }
-
         public Singleton(Context applicationContext) {
             this.applicationContext = applicationContext;
             audioManager = (AudioManager)applicationContext.getSystemService(Context.AUDIO_SERVICE);
@@ -292,6 +270,7 @@ public class AndroidAudioManager implements MethodCallHandler {
             }
         }
 
+        @TargetApi(23)
         private void initAudioDeviceCallback() {
             audioDeviceCallback = new AudioDeviceCallback() {
                 @Override
@@ -318,7 +297,7 @@ public class AndroidAudioManager implements MethodCallHandler {
             return instances.size() == 0;
         }
 
-        private boolean requestAudioFocus(List<?> args) {
+        public boolean requestAudioFocus(List<?> args) {
             if (audioFocusRequest != null) {
                 return true;
             }
@@ -344,7 +323,7 @@ public class AndroidAudioManager implements MethodCallHandler {
             return success;
         }
 
-        private boolean abandonAudioFocus() {
+        public boolean abandonAudioFocus() {
             if (applicationContext == null) return false;
             unregisterNoisyReceiver();
             unregisterScoReceiver();
@@ -357,8 +336,7 @@ public class AndroidAudioManager implements MethodCallHandler {
             }
         }
 
-        private Object dispatchMediaKeyEvent(Map<?, ?> rawKeyEvent) {
-            requireApi(19);
+        public Object dispatchMediaKeyEvent(Map<?, ?> rawKeyEvent) {
             KeyEvent keyEvent = new KeyEvent(
                     getLong(rawKeyEvent.get("downTime")),
                     getLong(rawKeyEvent.get("eventTime")),
@@ -373,52 +351,57 @@ public class AndroidAudioManager implements MethodCallHandler {
             audioManager.dispatchMediaKeyEvent(keyEvent);
             return null;
         }
-        private Object isVolumeFixed() {
+        @TargetApi(21)
+        public Object isVolumeFixed() {
             requireApi(21);
             return audioManager.isVolumeFixed();
         }
-        private Object adjustStreamVolume(int streamType, int direction, int flags) {
+        public Object adjustStreamVolume(int streamType, int direction, int flags) {
             audioManager.adjustStreamVolume(streamType, direction, flags);
             return null;
         }
-        private Object adjustVolume(int direction, int flags) {
+        public Object adjustVolume(int direction, int flags) {
             audioManager.adjustVolume(direction, flags);
             return null;
         }
-        private Object adjustSuggestedStreamVolume(int direction, int suggestedStreamType, int flags) {
+        public Object adjustSuggestedStreamVolume(int direction, int suggestedStreamType, int flags) {
             audioManager.adjustSuggestedStreamVolume(direction, suggestedStreamType, flags);
             return null;
         }
-        private Object getRingerMode() {
+        public Object getRingerMode() {
             return audioManager.getRingerMode();
         }
-        private Object getStreamMaxVolume(int streamType) {
+        public Object getStreamMaxVolume(int streamType) {
             return audioManager.getStreamMaxVolume(streamType);
         }
-        private Object getStreamMinVolume(int streamType) {
+        @TargetApi(28)
+        public Object getStreamMinVolume(int streamType) {
             requireApi(28);
             return audioManager.getStreamMinVolume(streamType);
         }
-        private Object getStreamVolume(int streamType) {
+        public Object getStreamVolume(int streamType) {
             return audioManager.getStreamVolume(streamType);
         }
-        private Object getStreamVolumeDb(int streamType, int index, int deviceType) {
+        @TargetApi(28)
+        public Object getStreamVolumeDb(int streamType, int index, int deviceType) {
             requireApi(28);
             return audioManager.getStreamVolumeDb(streamType, index, deviceType);
         }
-        private Object setRingerMode(int ringerMode) {
+        public Object setRingerMode(int ringerMode) {
             audioManager.setRingerMode(ringerMode);
             return null;
         }
-        private Object setStreamVolume(int streamType, int index, int flags) {
+        public Object setStreamVolume(int streamType, int index, int flags) {
             audioManager.setStreamVolume(streamType, index, flags);
             return null;
         }
-        private Object isStreamMute(int streamType) {
+        @TargetApi(23)
+        public Object isStreamMute(int streamType) {
             requireApi(23);
             return audioManager.isStreamMute(streamType);
         }
-        private List<Map<String, Object>> getAvailableCommunicationDevices() {
+        @TargetApi(31)
+        public List<Map<String, Object>> getAvailableCommunicationDevices() {
             requireApi(31);
             devices = audioManager.getAvailableCommunicationDevices();
             ArrayList<Map<String, Object>> result = new ArrayList<Map<String, Object>>();
@@ -427,7 +410,8 @@ public class AndroidAudioManager implements MethodCallHandler {
             }
             return result;
         }
-        private boolean setCommunicationDevice(Integer deviceId) {
+        @TargetApi(31)
+        public boolean setCommunicationDevice(Integer deviceId) {
             requireApi(31);
             for (AudioDeviceInfo device : devices) {
                 if (device.getId() == deviceId) {
@@ -436,83 +420,88 @@ public class AndroidAudioManager implements MethodCallHandler {
             }
             return false;
         }
-        private Map<String, Object> getCommunicationDevice() {
+        @TargetApi(31)
+        public Map<String, Object> getCommunicationDevice() {
             requireApi(31);
             return encodeAudioDevice(audioManager.getCommunicationDevice());
         }
-        private Object clearCommunicationDevice() {
+        @TargetApi(31)
+        public Object clearCommunicationDevice() {
             requireApi(31);
             audioManager.clearCommunicationDevice();
             return null;
         }
         @SuppressWarnings("deprecation")
-        private Object setSpeakerphoneOn(boolean enabled) {
+        public Object setSpeakerphoneOn(boolean enabled) {
             audioManager.setSpeakerphoneOn(enabled);
             return null;
         }
         @SuppressWarnings("deprecation")
-        private Object isSpeakerphoneOn() {
+        public Object isSpeakerphoneOn() {
             return audioManager.isSpeakerphoneOn();
         }
-        private Object setAllowedCapturePolicy(int capturePolicy) {
+        @TargetApi(29)
+        public Object setAllowedCapturePolicy(int capturePolicy) {
             requireApi(29);
             audioManager.setAllowedCapturePolicy(capturePolicy);
             return null;
         }
-        private Object getAllowedCapturePolicy() {
+        @TargetApi(29)
+        public Object getAllowedCapturePolicy() {
             requireApi(29);
             return audioManager.getAllowedCapturePolicy();
         }
-        private Object isBluetoothScoAvailableOffCall() {
+        public Object isBluetoothScoAvailableOffCall() {
             return audioManager.isBluetoothScoAvailableOffCall();
         }
         @SuppressWarnings("deprecation")
-        private Object startBluetoothSco() {
+        public Object startBluetoothSco() {
             audioManager.startBluetoothSco();
             return null;
         }
         @SuppressWarnings("deprecation")
-        private Object stopBluetoothSco() {
+        public Object stopBluetoothSco() {
             audioManager.stopBluetoothSco();
             return null;
         }
-        private Object setBluetoothScoOn(boolean enabled) {
+        public Object setBluetoothScoOn(boolean enabled) {
             audioManager.setBluetoothScoOn(enabled);
             return null;
         }
         @SuppressWarnings("deprecation")
-        private Object isBluetoothScoOn() {
+        public Object isBluetoothScoOn() {
             return audioManager.isBluetoothScoOn();
         }
-        private Object setMicrophoneMute(boolean enabled) {
+        public Object setMicrophoneMute(boolean enabled) {
             audioManager.setMicrophoneMute(enabled);
             return null;
         }
-        private Object isMicrophoneMute() {
+        public Object isMicrophoneMute() {
             return audioManager.isMicrophoneMute();
         }
-        private Object setMode(int mode) {
+        public Object setMode(int mode) {
             audioManager.setMode(mode);
             return null;
         }
-        private Object getMode() {
+        public Object getMode() {
             return audioManager.getMode();
         }
-        private Object isMusicActive() {
+        public Object isMusicActive() {
             return audioManager.isMusicActive();
         }
-        private Object generateAudioSessionId() {
+        @TargetApi(21)
+        public Object generateAudioSessionId() {
             requireApi(21);
             return audioManager.generateAudioSessionId();
         }
-        private Object setParameters(String parameters) {
+        public Object setParameters(String parameters) {
             audioManager.setParameters(parameters);
             return null;
         }
-        private Object getParameters(String keys) {
+        public Object getParameters(String keys) {
             return audioManager.getParameters(keys);
         }
-        private Object playSoundEffect(int effectType, Double volume) {
+        public Object playSoundEffect(int effectType, Double volume) {
             if (volume != null) {
                 audioManager.playSoundEffect(effectType, (float)((double)volume));
             } else {
@@ -520,19 +509,19 @@ public class AndroidAudioManager implements MethodCallHandler {
             }
             return null;
         }
-        private Object loadSoundEffects() {
+        public Object loadSoundEffects() {
             audioManager.loadSoundEffects();
             return null;
         }
-        private Object unloadSoundEffects() {
+        public Object unloadSoundEffects() {
             audioManager.unloadSoundEffects();
             return null;
         }
-        private Object getProperty(String arg) {
-            requireApi(17);
+        public Object getProperty(String arg) {
             return audioManager.getProperty(arg);
         }
-        private Object getDevices(int flags) {
+        @TargetApi(23)
+        public Object getDevices(int flags) {
             requireApi(23);
             ArrayList<Map<String, Object>> result = new ArrayList<>();
             AudioDeviceInfo[] devices = audioManager.getDevices(flags);
@@ -558,7 +547,8 @@ public class AndroidAudioManager implements MethodCallHandler {
             }
             return result;
         }
-        private Object getMicrophones() throws IOException {
+        @TargetApi(28)
+        public Object getMicrophones() throws IOException {
             requireApi(28);
             ArrayList<Map<String, Object>> result = new ArrayList<>();
             List<MicrophoneInfo> microphones = audioManager.getMicrophones();
@@ -592,7 +582,8 @@ public class AndroidAudioManager implements MethodCallHandler {
             return result;
         }
 
-        private Object isHapticPlaybackSupported() {
+        @TargetApi(29)
+        public Object isHapticPlaybackSupported() {
             requireApi(29);
             return AudioManager.isHapticPlaybackSupported();
         }
@@ -652,7 +643,7 @@ public class AndroidAudioManager implements MethodCallHandler {
             return builder.build();
         }
 
-        private void invokeMethod(String method, Object... args) {
+        public void invokeMethod(String method, Object... args) {
             for (AndroidAudioManager instance : instances) {
                 ArrayList<Object> list = new ArrayList<Object>(Arrays.asList(args));
                 instance.channel.invokeMethod(method, list);
@@ -668,6 +659,7 @@ public class AndroidAudioManager implements MethodCallHandler {
             audioManager = null;
         }
 
+        @TargetApi(23)
         private void disposeAudioDeviceCallback() {
             audioManager.unregisterAudioDeviceCallback((AudioDeviceCallback)audioDeviceCallback);
         }
@@ -702,6 +694,7 @@ public class AndroidAudioManager implements MethodCallHandler {
         return list;
     }
 
+    @TargetApi(28)
     static ArrayList<Double> coordinate3fToList(MicrophoneInfo.Coordinate3F coordinate) {
         ArrayList<Double> list = new ArrayList<>();
         list.add((double)coordinate.x);
@@ -712,5 +705,35 @@ public class AndroidAudioManager implements MethodCallHandler {
 
     static Long getLong(Object o) {
         return (o == null || o instanceof Long) ? (Long)o : Long.valueOf((Integer) o);
+    }
+
+    @TargetApi(23)
+    public static @NonNull List<?> encodeAudioDevices(@NonNull AudioDeviceInfo[] devices) {
+        ArrayList<Map<String, Object>> result = new ArrayList<>();
+        for (AudioDeviceInfo device : devices) {
+            result.add(encodeAudioDevice(device));
+        }
+        return result;
+    }
+
+    @TargetApi(23)
+    public static @NonNull Map<String, Object> encodeAudioDevice(@NonNull AudioDeviceInfo device) {
+        String address = null;
+        if (Build.VERSION.SDK_INT >= 28) {
+            address = device.getAddress();
+        }
+        return mapOf(
+            "id", device.getId(),
+            "productName", device.getProductName(),
+            "address", address,
+            "isSource", device.isSource(),
+            "isSink", device.isSink(),
+            "sampleRates", device.getSampleRates(),
+            "channelMasks", device.getChannelMasks(),
+            "channelIndexMasks", device.getChannelIndexMasks(),
+            "channelCounts", device.getChannelCounts(),
+            "encodings", device.getEncodings(),
+            "type", device.getType()
+        );
     }
 }

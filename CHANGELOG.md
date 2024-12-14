@@ -1,3 +1,9 @@
+## 0.1.23
+
+* Replace androidx.media2 by androidx.media.
+* Bump Android minSdk from 16 to 19.
+* Fix Android lints.
+
 ## 0.1.22
 
 * Add prefersNoInterruptionsFromSystemAlerts (@AlexBacich).

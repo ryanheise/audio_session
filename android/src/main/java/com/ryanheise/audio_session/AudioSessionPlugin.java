@@ -39,7 +39,7 @@ public class AudioSessionPlugin implements FlutterPlugin, MethodCallHandler {
     }
 
     @Override
-    public void onMethodCall(final MethodCall call, final Result result) {
+    public void onMethodCall(@NonNull final MethodCall call, @NonNull final Result result) {
         List<?> args = (List<?>)call.arguments;
         switch (call.method) {
         case "setConfiguration": {
