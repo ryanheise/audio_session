@@ -72,6 +72,10 @@ static NSHashTable<DarwinAudioSession *> *sessions = nil;
         [self getAllowHapticsAndSystemSoundsDuringRecording:args result:result];
     } else if ([@"setAllowHapticsAndSystemSoundsDuringRecording" isEqualToString:call.method]) {
         [self setAllowHapticsAndSystemSoundsDuringRecording:args result:result];
+    } else if ([@"getPrefersNoInterruptionsFromSystemAlerts" isEqualToString:call.method]) { // NEW
+        [self getPrefersNoInterruptionsFromSystemAlerts:args result:result]; // NEW
+    } else if ([@"setPrefersNoInterruptionsFromSystemAlerts" isEqualToString:call.method]) { // NEW
+        [self setPrefersNoInterruptionsFromSystemAlerts:args result:result]; /// NEW
     } else if ([@"getPromptStyle" isEqualToString:call.method]) {
         [self getPromptStyle:args result:result];
     } else if ([@"overrideOutputAudioPort" isEqualToString:call.method]) {
@@ -278,6 +282,28 @@ static NSHashTable<DarwinAudioSession *> *sessions = nil;
     }
 }
 
+- (void)getPrefersNoInterruptionsFromSystemAlerts:(NSArray *)args result:(FlutterResult)result {
+    if (@available(iOS 14.5, *)) {
+        result(@([[AVAudioSession sharedInstance] prefersNoInterruptionsFromSystemAlerts]));
+    } else {
+        result(@(NO));
+    }
+}
+
+- (void)setPrefersNoInterruptionsFromSystemAlerts:(NSArray *)args result:(FlutterResult)result {
+    if (@available(iOS 14.5, *)) {
+        NSError *error = nil;
+        [[AVAudioSession sharedInstance] setPrefersNoInterruptionsFromSystemAlerts:[args[0] boolValue] error:&error];
+        if (error) {
+            [self sendError:error result:result];
+        } else {
+            result(nil);
+        }
+    } else {
+        result(nil);
+    }
+}
+
 - (void)getPromptStyle:(NSArray *)args result:(FlutterResult)result {
     if (@available(iOS 13.0, *)) {
         result([self promptStyleToFlutter:[[AVAudioSession sharedInstance] promptStyle]]);
@@ -457,6 +483,7 @@ static NSHashTable<DarwinAudioSession *> *sessions = nil;
         result(nil);
     }
 }
+
 
 - (AVAudioSessionPortOverride)decodePortOverride:(NSNumber *)portOverrideIndex {
     if (portOverrideIndex == (id)[NSNull null]) return AVAudioSessionPortOverrideNone;
