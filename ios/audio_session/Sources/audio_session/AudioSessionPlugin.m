@@ -1,5 +1,5 @@
-#import "AudioSessionPlugin.h"
-#import "DarwinAudioSession.h"
+#import "./include/audio_session/AudioSessionPlugin.h"
+#import "./include/audio_session/DarwinAudioSession.h"
 
 static NSObject *configuration = nil;
 static NSHashTable<AudioSessionPlugin *> *plugins = nil;
