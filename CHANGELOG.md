@@ -1,3 +1,7 @@
+## 0.1.24
+
+* Add support for SwiftPM.
+
 ## 0.1.23
 
 * Replace androidx.media2 by androidx.media.

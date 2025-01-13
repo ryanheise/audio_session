@@ -160,7 +160,11 @@ If your app does indeed use the microphone, you can add this key to your `Info.p
 <string>... explain why the app uses the microphone here ...</string>
 ```
 
-But if your app doesn't use the microphone, you can pass a build option to this plugin to "compile out" microphone code so that the app store won't ask for the above usage description. To do so, edit your `ios/Podfile` as follows:
+But if your app doesn't use the microphone, you can pass a build option to this plugin to "compile out" microphone code so that the app store won't ask for the above usage description. This can be done with either CocoaPods or SwiftPM builds.
+
+### CocoaPods
+
+Edit your `ios/Podfile` as follows:
 
 ```ruby
 post_install do |installer|
@@ -178,3 +182,19 @@ post_install do |installer|
   end
 end
 ```
+
+### SwiftPM
+
+Run `flutter clean` to force SwiftPM to pick up your new settings:
+
+```
+flutter clean
+```
+
+Export the environment variable `AUDIO_SESSION_MICROPHONE=0` before running your build command. E.g. Using the bash command line:
+
+```
+AUDIO_SESSION_MICROPHONE=0 flutter run
+```
+
+Note: `flutter clean` is needed whenever the value of `AUDIO_SESSION_MICROPHONE` changes, or whenever you switch between different projects that use audio_session with different `AUDIO_SESSION_MICROPHONE` values.
