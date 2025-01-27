@@ -104,17 +104,17 @@ static NSHashTable<DarwinAudioSession *> *sessions = nil;
 
 - (void)getCategory:(NSArray *)args result:(FlutterResult)result {
     AVAudioSessionCategory category = [[AVAudioSession sharedInstance] category];
-    result([self categoryToFlutter:category]);
+    result(category);
 }
 
 - (void)setCategory:(NSArray *)args result:(FlutterResult)result {
-    NSNumber *categoryIndex = (NSNumber *)args[0];
+    NSString *rawCategory = (NSString *)args[0];
     NSNumber *options = (NSNumber *)args[1];
     NSNumber *modeIndex = (NSNumber *)args[2];
     NSNumber *policyIndex = (NSNumber *)args[3];
     NSError *error = nil;
     BOOL status;
-    AVAudioSessionCategory category = [self flutterToCategory:categoryIndex];
+    AVAudioSessionCategory category = [self rawToCategory:rawCategory];
     if (!category) category = AVAudioSessionCategorySoloAmbient;
     NSString *mode = [self flutterToMode:modeIndex];
     if (!mode) mode = AVAudioSessionModeDefault;
@@ -153,11 +153,7 @@ static NSHashTable<DarwinAudioSession *> *sessions = nil;
 - (void)getAvailableCategories:(NSArray *)args result:(FlutterResult)result {
     if (@available(iOS 9.0, *)) {
         NSArray *categories = [[AVAudioSession sharedInstance] availableCategories];
-        NSMutableArray *flutterCategories = [NSMutableArray new];
-        for (int i = 0; i < categories.count; i++) {
-            [flutterCategories addObject:[self categoryToFlutter:categories[i]]];
-        }
-        result(flutterCategories);
+        result(categories);
     } else {
         result(@[]);
     }
@@ -244,6 +240,7 @@ static NSHashTable<DarwinAudioSession *> *sessions = nil;
 
 - (void)requestRecordPermission:(NSArray *)args result:(FlutterResult)result {
 #if AUDIO_SESSION_MICROPHONE
+    // Deprecated. Replaced by requestRecordPermissionWithCompletionHandler
     [[AVAudioSession sharedInstance] requestRecordPermission:^(BOOL granted) {
         result(@(granted));
     }];
@@ -541,32 +538,13 @@ static NSHashTable<DarwinAudioSession *> *sessions = nil;
     }
 }
 
-- (AVAudioSessionCategory)flutterToCategory:(NSNumber *)categoryIndex {
-    AVAudioSessionCategory category = nil;
-    if (categoryIndex != (id)[NSNull null]) {
-        switch (categoryIndex.integerValue) {
-            case 0: category = AVAudioSessionCategoryAmbient; break;
-            case 1: category = AVAudioSessionCategorySoloAmbient; break;
-            case 2: category = AVAudioSessionCategoryPlayback; break;
-#if AUDIO_SESSION_MICROPHONE
-            case 3: category = AVAudioSessionCategoryRecord; break;
-            case 4: category = AVAudioSessionCategoryPlayAndRecord; break;
-#endif
-            case 5: category = AVAudioSessionCategoryMultiRoute; break;
+- (AVAudioSessionCategory)rawToCategory:(NSString *)rawCategory {
+    for (AVAudioSessionCategory category in [[AVAudioSession sharedInstance] availableCategories]) {
+        if ([category isEqualToString:rawCategory]) {
+            return category;
         }
     }
-    return category;
-}
-
-- (NSObject *)categoryToFlutter:(AVAudioSessionCategory)category {
-    if (category == AVAudioSessionCategoryAmbient) return @(0);
-    else if (category == AVAudioSessionCategorySoloAmbient) return @(1);
-    else if (category == AVAudioSessionCategoryPlayback) return @(2);
-#if AUDIO_SESSION_MICROPHONE
-    else if (category == AVAudioSessionCategoryRecord) return @(3);
-    else if (category == AVAudioSessionCategoryPlayAndRecord) return @(4);
-#endif
-    else return @(5);
+    return nil;
 }
 
 - (NSString *)flutterToMode:(NSNumber *)modeIndex {

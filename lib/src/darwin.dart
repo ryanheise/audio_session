@@ -87,9 +87,8 @@ class AVAudioSession {
 
   /// (UNTESTED)
   Future<AVAudioSessionCategory> get category async {
-    final index = (await (_channel.invokeMethod<int>('getCategory')))!;
-    return decodeEnum(AVAudioSessionCategory.values, index,
-        defaultValue: AVAudioSessionCategory.playback);
+    final rawCategory = (await (_channel.invokeMethod<String>('getCategory')))!;
+    return AVAudioSessionCategory.fromRawValue(rawCategory);
   }
 
   Future<void> setCategory(
@@ -99,14 +98,13 @@ class AVAudioSession {
     AVAudioSessionRouteSharingPolicy? policy,
   ]) =>
       _channel.invokeMethod('setCategory',
-          [category?.index, options?.value, mode?.index, policy?.index]);
+          [category?.rawValue, options?.value, mode?.index, policy?.index]);
 
   /// (UNTESTED)
   Future<List<AVAudioSessionCategory>> get availableCategories async =>
       (await _channel.invokeMethod<List<dynamic>>('getAvailableCategories'))!
-          .cast<int>()
-          .map((index) => decodeEnum(AVAudioSessionCategory.values, index,
-              defaultValue: AVAudioSessionCategory.playback))
+          .cast<String>()
+          .map((rawValue) => AVAudioSessionCategory.fromRawValue(rawValue))
           .toList();
 
   /// (UNTESTED)
@@ -345,12 +343,32 @@ class AVAudioSession {
 
 /// The categories for [AVAudioSession].
 enum AVAudioSessionCategory {
-  ambient,
-  soloAmbient,
-  playback,
-  record,
-  playAndRecord,
-  multiRoute,
+  ambient(_kAmbient),
+  soloAmbient(_kSoloAmbient),
+  playback(_kPlayback),
+  record(_kRecord),
+  playAndRecord(_kPlayAndRecord),
+  multiRoute(_kMultiRoute);
+
+  static const _kAmbient = 'AVAudioSessionCategoryAmbient';
+  static const _kSoloAmbient = 'AVAudioSessionCategorySoloAmbient';
+  static const _kPlayback = 'AVAudioSessionCategoryPlayback';
+  static const _kRecord = 'AVAudioSessionCategoryRecord';
+  static const _kPlayAndRecord = 'AVAudioSessionCategoryPlayAndRecord';
+  static const _kMultiRoute = 'AVAudioSessionCategoryMultiRoute';
+
+  static AVAudioSessionCategory fromRawValue(String rawValue) => const {
+        _kAmbient: ambient,
+        _kSoloAmbient: soloAmbient,
+        _kPlayback: playback,
+        _kRecord: record,
+        _kPlayAndRecord: playAndRecord,
+        _kMultiRoute: multiRoute,
+      }[rawValue]!;
+
+  const AVAudioSessionCategory(this.rawValue);
+
+  final String rawValue;
 }
 
 /// The category options for [AVAudioSession].

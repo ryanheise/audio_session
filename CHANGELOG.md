@@ -1,6 +1,7 @@
 ## 0.1.24
 
 * Add support for SwiftPM.
+* Define AVAudioSessionCategory constants using raw strings.
 
 ## 0.1.23
 

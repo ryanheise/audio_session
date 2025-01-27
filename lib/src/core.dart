@@ -513,8 +513,8 @@ class AudioSessionConfiguration {
       : this(
           avAudioSessionCategory: data['avAudioSessionCategory'] == null
               ? null
-              : AVAudioSessionCategory
-                  .values[data['avAudioSessionCategory'] as int],
+              : AVAudioSessionCategory.fromRawValue(
+                  data['avAudioSessionCategory'] as String),
           avAudioSessionCategoryOptions:
               data['avAudioSessionCategoryOptions'] == null
                   ? null
@@ -602,7 +602,7 @@ class AudioSessionConfiguration {
 
   // Converts this instance to JSON.
   Map<String, dynamic> toJson() => {
-        'avAudioSessionCategory': avAudioSessionCategory?.index,
+        'avAudioSessionCategory': avAudioSessionCategory?.rawValue,
         'avAudioSessionCategoryOptions': avAudioSessionCategoryOptions?.value,
         'avAudioSessionMode': avAudioSessionMode?.index,
         'avAudioSessionRouteSharingPolicy':
