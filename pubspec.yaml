@@ -1,6 +1,6 @@
 name: audio_session
 description: Sets the iOS audio session category and Android audio attributes for your app, and manages your app's audio focus, mixing and ducking behaviour.
-version: 0.1.24
+version: 0.1.25
 homepage: https://github.com/ryanheise/audio_session
 topics:
   - audio

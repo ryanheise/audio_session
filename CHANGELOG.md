@@ -1,3 +1,7 @@
+## 0.1.25
+
+* Fix SwiftPM support on macOS.
+
 ## 0.1.24
 
 * Add support for SwiftPM.
