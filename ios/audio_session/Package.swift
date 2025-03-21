@@ -19,7 +19,7 @@ let package = Package(
             dependencies: [],
             cSettings: [
                 .headerSearchPath("include/audio_session"),
-                .define("AUDIO_SESSION_MICROPHONE", to: ProcessInfo.processInfo.environment["AUDIO_SESSION_MICROPHONE"] ?? "1")
+                .define("AUDIO_SESSION_MICROPHONE", to: ProcessInfo.processInfo.environment["AUDIO_SESSION_MICROPHONE"] ?? "0")
             ]
         )
     ]

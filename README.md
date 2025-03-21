@@ -149,18 +149,14 @@ All numeric values encoded in `AndroidAudioAttributes.toJson()` correspond exact
 
 ## iOS setup
 
-This plugin contains APIs for accessing all of your phone's audio hardware.
-
-When submitting your app to the app store, it will detect that this plugin contains microphone-related APIs and will require you to add an `NSMicrophoneUsageDescription` key to your `Info.plist` file explaining why your app needs microphone access.
-
-If your app does indeed use the microphone, you can add this key to your `Info.plist` as follows:
+If you wish to use any of the APIs that access the microphone (`getRecordPermission`, `requestRecordPermission`), add this key to your `Info.plist`:
 
 ```xml
 <key>NSMicrophoneUsageDescription</key>
 <string>... explain why the app uses the microphone here ...</string>
 ```
 
-But if your app doesn't use the microphone, you can pass a build option to this plugin to "compile out" microphone code so that the app store won't ask for the above usage description. This can be done with either CocoaPods or SwiftPM builds.
+Next, pass a build option to this plugin to enable the microphone code in your build. This can be done with either CocoaPods or SwiftPM builds.
 
 ### CocoaPods
 
@@ -175,7 +171,7 @@ post_install do |installer|
     target.build_configurations.each do |config|
       config.build_settings['GCC_PREPROCESSOR_DEFINITIONS'] ||= [
         '$(inherited)',
-        'AUDIO_SESSION_MICROPHONE=0'
+        'AUDIO_SESSION_MICROPHONE=1'
       ]
     end
     
@@ -191,10 +187,10 @@ Run `flutter clean` to force SwiftPM to pick up your new settings:
 flutter clean
 ```
 
-Export the environment variable `AUDIO_SESSION_MICROPHONE=0` before running your build command. E.g. Using the bash command line:
+Export the environment variable `AUDIO_SESSION_MICROPHONE=1` before running your build command. E.g. Using the bash command line:
 
 ```
-AUDIO_SESSION_MICROPHONE=0 flutter run
+AUDIO_SESSION_MICROPHONE=1 flutter run
 ```
 
 Note: `flutter clean` is needed whenever the value of `AUDIO_SESSION_MICROPHONE` changes, or whenever you switch between different projects that use audio_session with different `AUDIO_SESSION_MICROPHONE` values.

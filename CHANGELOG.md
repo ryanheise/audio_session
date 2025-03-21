@@ -1,3 +1,7 @@
+## 0.2.0
+
+* Breaking change: AUDIO_SESSION_MICROPHONE=0 by default on iOS.
+
 ## 0.1.25
 
 * Fix SwiftPM support on macOS.

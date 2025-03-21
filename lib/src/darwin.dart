@@ -172,7 +172,7 @@ class AVAudioSession {
   Future<void> setPrefersNoInterruptionsFromSystemAlerts(
           bool noInterruptions) =>
       _channel.invokeMethod(
-          "setPrefersNoInterruptionsFromSystemAlerts", [noInterruptions]);
+          'setPrefersNoInterruptionsFromSystemAlerts', [noInterruptions]);
 
   /// (UNTESTED)
   Future<bool> get allowHapticsAndSystemSoundsDuringRecording async =>
@@ -182,7 +182,7 @@ class AVAudioSession {
   /// (UNTESTED)
   Future<void> setAllowHapticsAndSystemSoundsDuringRecording(bool allow) =>
       _channel.invokeMethod(
-          "setAllowHapticsAndSystemSoundsDuringRecording", [allow]);
+          'setAllowHapticsAndSystemSoundsDuringRecording', [allow]);
 
   /// (UNTESTED)
   Future<AVAudioSessionPromptStyle?> get promptStyle async {
@@ -290,14 +290,14 @@ class AVAudioSession {
 
   // TODO: key/value observing
   Future<double?> get inputGain async =>
-      (await _channel.invokeMethod<double>("getInputGain"));
+      (await _channel.invokeMethod<double>('getInputGain'));
 
   Future<bool?> get inputGainSettable async {
-    return await _channel.invokeMethod<bool>("isInputGainSettable");
+    return await _channel.invokeMethod<bool>('isInputGainSettable');
   }
 
   Future<bool?> setInputGain(double gain) async {
-    return await _channel.invokeMethod("setInputGain", [gain]);
+    return await _channel.invokeMethod('setInputGain', [gain]);
   }
 
   //Future<double> get outputVolume async {

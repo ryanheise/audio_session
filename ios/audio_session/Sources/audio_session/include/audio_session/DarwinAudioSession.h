@@ -1,7 +1,7 @@
 #import <Flutter/Flutter.h>
 
 #ifndef AUDIO_SESSION_MICROPHONE
-    #define AUDIO_SESSION_MICROPHONE 1
+    #define AUDIO_SESSION_MICROPHONE 0
 #endif
 
 @interface DarwinAudioSession : NSObject
