@@ -181,7 +181,7 @@ class AndroidAudioManager {
           .invokeMethod<bool>('setCommunicationDevice', [device.id]))!;
 
   /// Requires API level 31
-  Future<AndroidAudioDeviceInfo> getCommunicationDevice() async =>
+  Future<AndroidAudioDeviceInfo?> getCommunicationDevice() async =>
       _decodeAudioDevice(
           await _channel.invokeMethod<dynamic>('getCommunicationDevice'));
 
@@ -399,7 +399,7 @@ class AndroidAudioManager {
   }
 
   List<AndroidAudioDeviceInfo> _decodeAudioDevices(dynamic rawList) {
-    return (rawList as List<dynamic>).map(_decodeAudioDevice).toList();
+    return (rawList as List<dynamic>).map(_decodeAudioDevice).nonNulls.toList();
   }
 
   AndroidScoAudioEvent _decodeScoAudioEvent(List<dynamic> args) {
@@ -412,22 +412,24 @@ class AndroidAudioManager {
     return AndroidScoAudioEvent(current, previous);
   }
 
-  AndroidAudioDeviceInfo _decodeAudioDevice(dynamic raw) {
-    return AndroidAudioDeviceInfo(
-      id: raw['id'] as int,
-      productName: raw['productName'] as String,
-      address: raw['address'] as String?,
-      isSource: raw['isSource'] as bool,
-      isSink: raw['isSink'] as bool,
-      sampleRates: (raw['sampleRates'] as List<dynamic>).cast<int>(),
-      channelMasks: (raw['channelMasks'] as List<dynamic>).cast<int>(),
-      channelIndexMasks:
-          (raw['channelIndexMasks'] as List<dynamic>).cast<int>(),
-      channelCounts: (raw['channelCounts'] as List<dynamic>).cast<int>(),
-      encodings: (raw['encodings'] as List<dynamic>).cast<int>(),
-      type: decodeEnum(AndroidAudioDeviceType.values, raw['type'] as int?,
-          defaultValue: AndroidAudioDeviceType.unknown),
-    );
+  AndroidAudioDeviceInfo? _decodeAudioDevice(dynamic raw) {
+    return raw == null
+        ? null
+        : AndroidAudioDeviceInfo(
+            id: raw['id'] as int,
+            productName: raw['productName'] as String,
+            address: raw['address'] as String?,
+            isSource: raw['isSource'] as bool,
+            isSink: raw['isSink'] as bool,
+            sampleRates: (raw['sampleRates'] as List<dynamic>).cast<int>(),
+            channelMasks: (raw['channelMasks'] as List<dynamic>).cast<int>(),
+            channelIndexMasks:
+                (raw['channelIndexMasks'] as List<dynamic>).cast<int>(),
+            channelCounts: (raw['channelCounts'] as List<dynamic>).cast<int>(),
+            encodings: (raw['encodings'] as List<dynamic>).cast<int>(),
+            type: decodeEnum(AndroidAudioDeviceType.values, raw['type'] as int?,
+                defaultValue: AndroidAudioDeviceType.unknown),
+          );
   }
 }
 
