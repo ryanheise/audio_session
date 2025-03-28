@@ -2,7 +2,7 @@
 
 * Breaking change: AUDIO_SESSION_MICROPHONE=0 by default on iOS.
 * Migrate to Kotlin.
-* Bump AGP to 8.5.2.
+* Bump min flutter version to 3.27.0, AGP to 8.5.2.
 
 ## 0.1.25
 
