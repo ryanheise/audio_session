@@ -17,5 +17,5 @@ Podfile.lock
 
 gradlew
 gradlew.bat
-
 .build/
+**/.cxx/
