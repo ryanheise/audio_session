@@ -29,9 +29,9 @@ class AudioSession {
       try {
         // TODO: Use this code without the '?' once a Dart bug is fixed.
         // (similar instances occur elsewhere)
-        //Map? data = await _channel.invokeMethod<Map>('getConfiguration');
-        final data =
-            await _channel.invokeMapMethod<String, dynamic>('getConfiguration');
+        // Map? data = await _channel.invokeMethod<Map>('getConfiguration', <dynamic>[]);
+        final data = await _channel
+            .invokeMapMethod<String, dynamic>('getConfiguration', <dynamic>[]);
         if (data != null) {
           _instance!._configuration = AudioSessionConfiguration.fromJson(data);
         }

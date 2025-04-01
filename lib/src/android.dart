@@ -78,7 +78,8 @@ class AndroidAudioManager {
   }
 
   Future<bool> abandonAudioFocus() async {
-    return (await _channel.invokeMethod<bool>('abandonAudioFocus'))!;
+    return (await _channel
+        .invokeMethod<bool>('abandonAudioFocus', <dynamic>[]))!;
   }
 
   /// (UNTESTED) Requires API level 19
@@ -88,7 +89,7 @@ class AndroidAudioManager {
 
   /// (UNTESTED) Requires API level 21
   Future<bool> isVolumeFixed() async {
-    return (await _channel.invokeMethod<bool>('isVolumeFixed'))!;
+    return (await _channel.invokeMethod<bool>('isVolumeFixed', <dynamic>[]))!;
   }
 
   /// (UNTESTED)
@@ -120,7 +121,7 @@ class AndroidAudioManager {
   /// (UNTESTED)
   Future<AndroidRingerMode> getRingerMode() async {
     return decodeEnum(AndroidRingerMode.values,
-        (await _channel.invokeMethod<int>('getRingerMode'))!,
+        (await _channel.invokeMethod<int>('getRingerMode', <dynamic>[]))!,
         defaultValue: AndroidRingerMode.normal);
   }
 
@@ -173,7 +174,7 @@ class AndroidAudioManager {
   Future<List<AndroidAudioDeviceInfo>>
       getAvailableCommunicationDevices() async =>
           _decodeAudioDevices((await _channel.invokeMethod<List<dynamic>>(
-              'getAvailableCommunicationDevices')));
+              'getAvailableCommunicationDevices', <dynamic>[])));
 
   /// Requires API level 31
   Future<bool> setCommunicationDevice(AndroidAudioDeviceInfo device) async =>
@@ -181,13 +182,13 @@ class AndroidAudioManager {
           .invokeMethod<bool>('setCommunicationDevice', [device.id]))!;
 
   /// Requires API level 31
-  Future<AndroidAudioDeviceInfo> getCommunicationDevice() async =>
-      _decodeAudioDevice(
-          await _channel.invokeMethod<dynamic>('getCommunicationDevice'));
+  Future<AndroidAudioDeviceInfo?> getCommunicationDevice() async =>
+      _decodeAudioDevice(await _channel
+          .invokeMethod<dynamic>('getCommunicationDevice', <dynamic>[]));
 
   /// Requires API level 31
   Future<void> clearCommunicationDevice() async =>
-      await _channel.invokeMethod('clearCommunicationDevice');
+      await _channel.invokeMethod('clearCommunicationDevice', <dynamic>[]);
 
   Future<void> setSpeakerphoneOn(bool enabled) async {
     await _channel.invokeMethod<bool>('setSpeakerphoneOn', [enabled]);
@@ -195,7 +196,8 @@ class AndroidAudioManager {
 
   /// (UNTESTED)
   Future<bool> isSpeakerphoneOn() async {
-    return (await _channel.invokeMethod<bool>('isSpeakerphoneOn'))!;
+    return (await _channel
+        .invokeMethod<bool>('isSpeakerphoneOn', <dynamic>[]))!;
   }
 
   /// (UNTESTED) Requires API level 29
@@ -207,8 +209,10 @@ class AndroidAudioManager {
 
   /// (UNTESTED) Requires API level 29
   Future<AndroidAudioCapturePolicy> getAllowedCapturePolicy() async {
-    return decodeMapEnum(AndroidAudioCapturePolicy.values,
-        (await _channel.invokeMethod<int>('getAllowedCapturePolicy'))!,
+    return decodeMapEnum(
+        AndroidAudioCapturePolicy.values,
+        (await _channel
+            .invokeMethod<int>('getAllowedCapturePolicy', <dynamic>[]))!,
         defaultValue: AndroidAudioCapturePolicy.allowAll);
   }
 
@@ -217,15 +221,15 @@ class AndroidAudioManager {
   /// (UNTESTED)
   Future<bool> isBluetoothScoAvailableOffCall() async {
     return (await _channel
-        .invokeMethod<bool>('isBluetoothScoAvailableOffCall'))!;
+        .invokeMethod<bool>('isBluetoothScoAvailableOffCall', <dynamic>[]))!;
   }
 
   Future<void> startBluetoothSco() async {
-    await _channel.invokeMethod('startBluetoothSco');
+    await _channel.invokeMethod('startBluetoothSco', <dynamic>[]);
   }
 
   Future<void> stopBluetoothSco() async {
-    await _channel.invokeMethod('stopBluetoothSco');
+    await _channel.invokeMethod('stopBluetoothSco', <dynamic>[]);
   }
 
   Future<void> setBluetoothScoOn(bool enabled) async {
@@ -234,7 +238,8 @@ class AndroidAudioManager {
 
   /// (UNTESTED)
   Future<bool> isBluetoothScoOn() async {
-    return (await _channel.invokeMethod<bool>('isBluetoothScoOn'))!;
+    return (await _channel
+        .invokeMethod<bool>('isBluetoothScoOn', <dynamic>[]))!;
   }
 
   /// (UNTESTED)
@@ -244,7 +249,8 @@ class AndroidAudioManager {
 
   /// (UNTESTED)
   Future<bool> isMicrophoneMute() async {
-    return (await _channel.invokeMethod<bool>('isMicrophoneMute'))!;
+    return (await _channel
+        .invokeMethod<bool>('isMicrophoneMute', <dynamic>[]))!;
   }
 
   /// (UNTESTED)
@@ -255,18 +261,19 @@ class AndroidAudioManager {
   /// (UNTESTED)
   Future<AndroidAudioHardwareMode> getMode() async {
     return decodeMapEnum(AndroidAudioHardwareMode.values,
-        (await _channel.invokeMethod<int>('getMode'))!,
+        (await _channel.invokeMethod<int>('getMode', <dynamic>[]))!,
         defaultValue: AndroidAudioHardwareMode.normal);
   }
 
   /// (UNTESTED)
   Future<bool> isMusicActive() async {
-    return (await _channel.invokeMethod<bool>('isMusicActive'))!;
+    return (await _channel.invokeMethod<bool>('isMusicActive', <dynamic>[]))!;
   }
 
   /// (UNTESTED) Requires API level 21
   Future<int> generateAudioSessionId() async {
-    return (await _channel.invokeMethod<int>('generateAudioSessionId'))!;
+    return (await _channel
+        .invokeMethod<int>('generateAudioSessionId', <dynamic>[]))!;
   }
 
   // TODO?: AUDIO_SESSION_ID_GENERATE
@@ -299,12 +306,12 @@ class AndroidAudioManager {
 
   /// (UNTESTED)
   Future<void> loadSoundEffects() async {
-    await _channel.invokeMethod('loadSoundEffects');
+    await _channel.invokeMethod('loadSoundEffects', <dynamic>[]);
   }
 
   /// (UNTESTED)
   Future<void> unloadSoundEffects() async {
-    await _channel.invokeMethod('unloadSoundEffects');
+    await _channel.invokeMethod('unloadSoundEffects', <dynamic>[]);
   }
 
   // TODO: (un)registerAudioPlaybackCallback
@@ -358,8 +365,8 @@ class AndroidAudioManager {
 
   /// (UNTESTED) Requires API level 28
   Future<List<AndroidMicrophoneInfo>> getMicrophones() async {
-    return ((await _channel
-            .invokeListMethod<Map<dynamic, dynamic>>('getMicrophones'))!)
+    return ((await _channel.invokeListMethod<Map<dynamic, dynamic>>(
+            'getMicrophones', <dynamic>[]))!)
         .map((raw) => raw.cast<String, dynamic>())
         .map((raw) => AndroidMicrophoneInfo(
               description: raw['description'] as String,
@@ -391,7 +398,8 @@ class AndroidAudioManager {
 
   /// (UNTESTED) Requires API level 29
   Future<bool> isHapticPlaybackSupported() async {
-    return (await _channel.invokeMethod<bool>('isHapticPlaybackSupported'))!;
+    return (await _channel
+        .invokeMethod<bool>('isHapticPlaybackSupported', <dynamic>[]))!;
   }
 
   void close() {
@@ -399,7 +407,7 @@ class AndroidAudioManager {
   }
 
   List<AndroidAudioDeviceInfo> _decodeAudioDevices(dynamic rawList) {
-    return (rawList as List<dynamic>).map(_decodeAudioDevice).toList();
+    return (rawList as List<dynamic>).map(_decodeAudioDevice).nonNulls.toList();
   }
 
   AndroidScoAudioEvent _decodeScoAudioEvent(List<dynamic> args) {
@@ -412,22 +420,24 @@ class AndroidAudioManager {
     return AndroidScoAudioEvent(current, previous);
   }
 
-  AndroidAudioDeviceInfo _decodeAudioDevice(dynamic raw) {
-    return AndroidAudioDeviceInfo(
-      id: raw['id'] as int,
-      productName: raw['productName'] as String,
-      address: raw['address'] as String?,
-      isSource: raw['isSource'] as bool,
-      isSink: raw['isSink'] as bool,
-      sampleRates: (raw['sampleRates'] as List<dynamic>).cast<int>(),
-      channelMasks: (raw['channelMasks'] as List<dynamic>).cast<int>(),
-      channelIndexMasks:
-          (raw['channelIndexMasks'] as List<dynamic>).cast<int>(),
-      channelCounts: (raw['channelCounts'] as List<dynamic>).cast<int>(),
-      encodings: (raw['encodings'] as List<dynamic>).cast<int>(),
-      type: decodeEnum(AndroidAudioDeviceType.values, raw['type'] as int?,
-          defaultValue: AndroidAudioDeviceType.unknown),
-    );
+  AndroidAudioDeviceInfo? _decodeAudioDevice(dynamic raw) {
+    return raw == null
+        ? null
+        : AndroidAudioDeviceInfo(
+            id: raw['id'] as int,
+            productName: raw['productName'] as String,
+            address: raw['address'] as String?,
+            isSource: raw['isSource'] as bool,
+            isSink: raw['isSink'] as bool,
+            sampleRates: (raw['sampleRates'] as List<dynamic>).cast<int>(),
+            channelMasks: (raw['channelMasks'] as List<dynamic>).cast<int>(),
+            channelIndexMasks:
+                (raw['channelIndexMasks'] as List<dynamic>).cast<int>(),
+            channelCounts: (raw['channelCounts'] as List<dynamic>).cast<int>(),
+            encodings: (raw['encodings'] as List<dynamic>).cast<int>(),
+            type: decodeEnum(AndroidAudioDeviceType.values, raw['type'] as int?,
+                defaultValue: AndroidAudioDeviceType.unknown),
+          );
   }
 }
 
