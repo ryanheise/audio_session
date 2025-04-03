@@ -95,6 +95,40 @@ class _MyAppState extends State<MyApp> {
     });
   }
 
+  String getOutputDeviceName(OutputAudioDevice device) {
+    switch (device) {
+      case Bluetooth _:
+        return 'bluetooth (${device.label})';
+      case Earpiece _:
+        return 'telephony';
+      case Speaker _:
+        return 'speaker';
+    }
+  }
+
+  Future<void> changeOutputDevice(
+      OutputAudioDevice device, AudioSession audioSession) async {
+    switch (device) {
+      case Bluetooth _:
+        audioSession.switchToBluetooth();
+      case Earpiece _:
+        return audioSession.switchToReceiver();
+      case Speaker _:
+        return audioSession.switchToSpeaker();
+    }
+  }
+
+  IconData getOutputDeviceIcon(OutputAudioDevice device) {
+    switch (device) {
+      case Bluetooth _:
+        return Icons.bluetooth_audio;
+      case Earpiece _:
+        return Icons.phone;
+      case Speaker _:
+        return Icons.speaker;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -103,72 +137,106 @@ class _MyAppState extends State<MyApp> {
           title: const Text('audio_session example'),
         ),
         body: SafeArea(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Expanded(
-                child: Center(
-                  child: StreamBuilder<ja.PlayerState>(
-                    stream: _player.playerStateStream,
-                    builder: (context, snapshot) {
-                      final playerState = snapshot.data;
-                      if (playerState?.processingState !=
-                          ja.ProcessingState.ready) {
-                        return Container(
-                          margin: EdgeInsets.all(8.0),
-                          width: 64.0,
-                          height: 64.0,
-                          child: CircularProgressIndicator(),
-                        );
-                      } else if (playerState?.playing == true) {
-                        return IconButton(
-                          icon: Icon(Icons.pause),
-                          iconSize: 64.0,
-                          onPressed: _player.pause,
-                        );
-                      } else {
-                        return IconButton(
-                          icon: Icon(Icons.play_arrow),
-                          iconSize: 64.0,
-                          onPressed: _player.play,
-                        );
-                      }
-                    },
-                  ),
-                ),
-              ),
-              Expanded(
-                child: FutureBuilder<AudioSession>(
-                  future: AudioSession.instance,
-                  builder: (context, snapshot) {
-                    final session = snapshot.data;
-                    if (session == null) return SizedBox();
-                    return StreamBuilder<Set<AudioDevice>>(
-                      stream: session.devicesStream,
-                      builder: (context, snapshot) {
-                        final devices = snapshot.data ?? {};
-                        return Column(
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            Text("Input devices",
-                                style: Theme.of(context).textTheme.titleLarge),
-                            for (var device
-                                in devices.where((device) => device.isInput))
-                              Text('${device.name} (${device.type.name})'),
-                            SizedBox(height: 16),
-                            Text("Output devices",
-                                style: Theme.of(context).textTheme.titleLarge),
-                            for (var device
-                                in devices.where((device) => device.isOutput))
-                              Text('${device.name} (${device.type.name})'),
-                          ],
-                        );
-                      },
-                    );
-                  },
-                ),
-              ),
-            ],
+          child: FutureBuilder<AudioSession>(
+            future: AudioSession.instance,
+            builder: (context, snapshot) {
+              final session = snapshot.data;
+              if (session == null) return SizedBox();
+              return StreamBuilder<Set<AudioDevice>>(
+                stream: session.devicesStream,
+                builder: (context, snapshot) {
+                  final devices = snapshot.data ?? {};
+                  return Column(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Expanded(
+                        child: Center(
+                          child: StreamBuilder<ja.PlayerState>(
+                            stream: _player.playerStateStream,
+                            builder: (context, snapshot) {
+                              final playerState = snapshot.data;
+                              if (playerState?.processingState !=
+                                  ja.ProcessingState.ready) {
+                                return Container(
+                                  margin: EdgeInsets.all(8.0),
+                                  width: 64.0,
+                                  height: 64.0,
+                                  child: CircularProgressIndicator(),
+                                );
+                              } else if (playerState?.playing == true) {
+                                return IconButton(
+                                  padding: EdgeInsets.zero,
+                                  icon: Icon(Icons.pause),
+                                  iconSize: 64.0,
+                                  onPressed: _player.pause,
+                                );
+                              } else {
+                                return IconButton(
+                                  padding: EdgeInsets.zero,
+                                  icon: Icon(Icons.play_arrow),
+                                  iconSize: 64.0,
+                                  onPressed: _player.play,
+                                );
+                              }
+                            },
+                          ),
+                        ),
+                      ),
+                      StreamBuilder<OutputAudioDevice>(
+                          stream: session.changedCurrentOutputStream,
+                          builder: (context, snapshot) {
+                            final currentDevice = snapshot.data;
+                            final currentDeviceName = currentDevice != null
+                                ? getOutputDeviceName(currentDevice)
+                                : '';
+                            return Text(
+                                "Switch devices: $currentDeviceName",
+                                style: Theme.of(context).textTheme.titleLarge);
+                          }),
+                      StreamBuilder<List<OutputAudioDevice>>(
+                          stream: session.changedOutputsStream,
+                          builder: (context, snapshot) {
+                            final devices = snapshot.data ?? [];
+                            return Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                for (var device in devices)
+                                  Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.center,
+                                    children: [
+                                      Text(getOutputDeviceName(device)),
+                                      IconButton(                              
+                                        visualDensity: VisualDensity.compact,
+                                          padding: EdgeInsets.zero,                                           
+                                          onPressed: () => changeOutputDevice(
+                                              device, session),
+                                          icon:
+                                              Icon(
+                                                getOutputDeviceIcon(device)))
+                                    ],
+                                  ),
+                              ],
+                            );
+                          }),
+                      Text("Input devices",
+                          style: Theme.of(context).textTheme.titleLarge),
+                      for (var device
+                          in devices.where((device) => device.isInput))
+                        Text('${device.name} (${device.type.name})'),
+                      SizedBox(height: 16),
+                      Text("Output devices",
+                          style: Theme.of(context).textTheme.titleLarge),
+                      for (var device
+                          in devices.where((device) => device.isOutput))
+                        Text('${device.name} (${device.type.name})'),
+                    ],
+                  );
+                },
+              );
+            },
           ),
         ),
       ),
