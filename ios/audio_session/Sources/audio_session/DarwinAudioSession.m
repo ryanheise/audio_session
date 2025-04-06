@@ -108,46 +108,57 @@ static NSHashTable<DarwinAudioSession *> *sessions = nil;
 }
 
 - (void)setCategory:(NSArray *)args result:(FlutterResult)result {
-    NSString *rawCategory = (NSString *)args[0];
-    NSNumber *options = (NSNumber *)args[1];
-    NSNumber *modeIndex = (NSNumber *)args[2];
-    NSNumber *policyIndex = (NSNumber *)args[3];
-    NSError *error = nil;
-    BOOL status;
-    AVAudioSessionCategory category = [self rawToCategory:rawCategory];
-    if (!category) category = AVAudioSessionCategorySoloAmbient;
-    NSString *mode = [self flutterToMode:modeIndex];
-    if (!mode) mode = AVAudioSessionModeDefault;
-    if (options == (id)[NSNull null]) options = @(0);
-    if (policyIndex == (id)[NSNull null]) {
-        // Set the category, mode and options depending on the available API
-        if (@available(iOS 10.0, *)) {
-            status = [[AVAudioSession sharedInstance] setCategory:category mode:mode options:options.integerValue error:&error];
-        } else {
-            status = [[AVAudioSession sharedInstance] setCategory:category withOptions:options.integerValue error:&error];
-            if (!error) {
-                status = status && [[AVAudioSession sharedInstance] setMode:mode error:&error];
+    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+        NSString *rawCategory = (NSString *)args[0];
+        NSNumber *options = (NSNumber *)args[1];
+        NSNumber *modeIndex = (NSNumber *)args[2];
+        NSNumber *policyIndex = (NSNumber *)args[3];
+        __block NSError *error = nil;
+        __block BOOL status = NO;
+
+        @try {
+            AVAudioSessionCategory category = [self rawToCategory:rawCategory];
+            if (!category) category = AVAudioSessionCategorySoloAmbient;
+            NSString *mode = [self flutterToMode:modeIndex];
+            if (!mode) mode = AVAudioSessionModeDefault;
+            if (options == (id)[NSNull null]) options = @(0);
+            if (policyIndex == (id)[NSNull null]) {
+                // Set the category, mode and options depending on the available API
+                if (@available(iOS 10.0, *)) {
+                    status = [[AVAudioSession sharedInstance] setCategory:category mode:mode options:options.integerValue error:&error];
+                } else {
+                    status = [[AVAudioSession sharedInstance] setCategory:category withOptions:options.integerValue error:&error];
+                    if (!error) {
+                        status = status && [[AVAudioSession sharedInstance] setMode:mode error:&error];
+                    }
+                }
+            } else {
+                // Set the category, mode, options and policy depending on the available API
+                if (@available(iOS 11.0, *)) {
+                    AVAudioSessionRouteSharingPolicy policy = [self flutterToPolicy:policyIndex];
+                    status = [[AVAudioSession sharedInstance] setCategory:category mode:mode routeSharingPolicy:policy options:options.integerValue error:&error];
+                } else if (@available(iOS 10.0, *)) {
+                    status = [[AVAudioSession sharedInstance] setCategory:category mode:mode options:options.integerValue error:&error];
+                } else {
+                    status = [[AVAudioSession sharedInstance] setCategory:category withOptions:options.integerValue error:&error];
+                    if (!error) {
+                        status = status && [[AVAudioSession sharedInstance] setMode:mode error:&error];
+                    }
+                }
             }
+        } @catch (NSException *exception) {
+             error = [NSError errorWithDomain:@"com.ryanheise.audioSession" code:500 userInfo:@{NSLocalizedDescriptionKey: exception.reason}];
+             status = NO;
         }
-    } else {
-        // Set the category, mode, options and policy depending on the available API
-        if (@available(iOS 11.0, *)) {
-            AVAudioSessionRouteSharingPolicy policy = [self flutterToPolicy:policyIndex];
-            status = [[AVAudioSession sharedInstance] setCategory:category mode:mode routeSharingPolicy:policy options:options.integerValue error:&error];
-        } else if (@available(iOS 10.0, *)) {
-            status = [[AVAudioSession sharedInstance] setCategory:category mode:mode options:options.integerValue error:&error];
-        } else {
-            status = [[AVAudioSession sharedInstance] setCategory:category withOptions:options.integerValue error:&error];
-            if (!error) {
-                status = status && [[AVAudioSession sharedInstance] setMode:mode error:&error];
+
+        dispatch_async(dispatch_get_main_queue(), ^{
+            if (error) {
+                [self sendError:error result:result];
+            } else {
+                result(@(status));
             }
-        }
-    }
-    if (error) {
-        [self sendError:error result:result];
-    } else {
-        result(@(status));
-    }
+        });
+    });
 }
 
 - (void)getAvailableCategories:(NSArray *)args result:(FlutterResult)result {
