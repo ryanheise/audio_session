@@ -785,7 +785,7 @@ private class AudioManagerSingleton(applicationContext: Context) {
             return mapOf(
                 "id" to device.id,
                 "productName" to device.getProductName(),
-                "address" to address!!,
+                "address" to address,
                 "isSource" to device.isSource,
                 "isSink" to device.isSink,
                 "sampleRates" to device.sampleRates,
