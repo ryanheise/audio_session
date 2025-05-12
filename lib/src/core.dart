@@ -86,8 +86,7 @@ class AudioSession {
                   : AudioInterruptionType.unknown));
           break;
       }
-    });
-    //_audioOutputsManager?.dispose();
+    });   
     _audioOutputsManager = _audioOutputsManager ??
         AudioOutputsManager(
             androidAudioManager: _androidAudioManager,

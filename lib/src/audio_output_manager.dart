@@ -1,8 +1,9 @@
 import 'dart:async';
 import 'dart:io';
-import 'package:audio_session/audio_session.dart';
-import 'package:audio_session/src/util.dart';
 import 'package:flutter/foundation.dart';
+
+import '../audio_session.dart';
+import 'util.dart';
 
 sealed class OutputAudioDevice {}
 
@@ -117,7 +118,7 @@ class AudioOutputsManager {
 
   Future<void> switchToSpeaker() async {
     if (_androidAudioManager != null) {
-      await _androidAudioManager.setMode(AndroidAudioHardwareMode.normal);
+      await _androidAudioManager.setMode(AndroidAudioHardwareMode.inCommunication);
       await _androidAudioManager.stopBluetoothSco();
       await _androidAudioManager.setBluetoothScoOn(false);
       await _androidAudioManager.setSpeakerphoneOn(true);
