@@ -1,3 +1,7 @@
+## 0.2.2
+
+* Run setCategory in a thread on iOS to avoid jank (@MinseokKang003).
+
 ## 0.2.1
 
 * Fix NPE on Android in device encoding.
