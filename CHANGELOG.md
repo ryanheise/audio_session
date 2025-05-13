@@ -1,3 +1,7 @@
+## 0.2.1
+
+* Fix NPE on Android in device encoding.
+
 ## 0.2.0
 
 * Breaking change: AUDIO_SESSION_MICROPHONE=0 by default on iOS.

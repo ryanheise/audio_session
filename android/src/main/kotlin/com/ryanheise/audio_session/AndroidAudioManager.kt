@@ -596,26 +596,7 @@ private class AudioManagerSingleton(applicationContext: Context) {
         val result = mutableListOf<Map<String, Any?>>();
         val devices: Array<AudioDeviceInfo> = audioManager!!.getDevices(flags)
         for (i in devices.indices) {
-            val device: AudioDeviceInfo = devices[i]
-            var address: String? = null
-            if (Build.VERSION.SDK_INT >= 28) {
-                address = device.address
-            }
-            result.add(
-                mapOf(
-                    "id" to device.id,
-                    "productName" to device.getProductName(),
-                    "address" to address,
-                    "isSource" to device.isSource,
-                    "isSink" to device.isSink,
-                    "sampleRates" to intArrayToList(device.sampleRates),
-                    "channelMasks" to intArrayToList(device.channelMasks),
-                    "channelIndexMasks" to intArrayToList(device.channelIndexMasks),
-                    "channelCounts" to intArrayToList(device.getChannelCounts()),
-                    "encodings" to intArrayToList(device.encodings),
-                    "type" to device.type
-                )
-            )
+            result.add(encodeAudioDevice(devices[i]))
         }
         return result
     }
@@ -785,14 +766,14 @@ private class AudioManagerSingleton(applicationContext: Context) {
             return mapOf(
                 "id" to device.id,
                 "productName" to device.getProductName(),
-                "address" to address!!,
+                "address" to address,
                 "isSource" to device.isSource,
                 "isSink" to device.isSink,
-                "sampleRates" to device.sampleRates,
-                "channelMasks" to device.channelMasks,
-                "channelIndexMasks" to device.channelIndexMasks,
-                "channelCounts" to device.getChannelCounts(),
-                "encodings" to device.encodings,
+                "sampleRates" to intArrayToList(device.sampleRates),
+                "channelMasks" to intArrayToList(device.channelMasks),
+                "channelIndexMasks" to intArrayToList(device.channelIndexMasks),
+                "channelCounts" to intArrayToList(device.getChannelCounts()),
+                "encodings" to intArrayToList(device.encodings),
                 "type" to device.type
             )
         }
