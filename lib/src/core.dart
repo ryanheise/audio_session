@@ -8,7 +8,6 @@ import 'package:rxdart/rxdart.dart';
 
 import 'android.dart';
 import 'darwin.dart';
-import 'audio_output_manager.dart';
 
 /// Manages a single audio session to be used across different audio plugins in
 /// your app. [AudioSession] will configure your app by describing to the operating
@@ -50,18 +49,12 @@ class AudioSession {
   final _avAudioSession = !kIsWeb && Platform.isIOS ? AVAudioSession() : null;
   AudioSessionConfiguration? _configuration;
   final _configurationSubject = BehaviorSubject<AudioSessionConfiguration>();
-
-  final _changedOutputsSubject = BehaviorSubject<List<OutputAudioDevice>>();
-  final _changedCurrentOutputSubject = BehaviorSubject<OutputAudioDevice>();
-
   final _interruptionEventSubject = PublishSubject<AudioInterruptionEvent>();
   final _becomingNoisyEventSubject = PublishSubject<void>();
   final _devicesChangedEventSubject =
       PublishSubject<AudioDevicesChangedEvent>();
   late final BehaviorSubject<Set<AudioDevice>> _devicesSubject;
   AVAudioSessionRouteDescription? _previousAVAudioSessionRoute;
-
-  AudioOutputsManager? _audioOutputsManager;
 
   AudioSession._() {
     _devicesSubject = BehaviorSubject<Set<AudioDevice>>(
@@ -86,19 +79,7 @@ class AudioSession {
                   : AudioInterruptionType.unknown));
           break;
       }
-    });   
-    _audioOutputsManager = _audioOutputsManager ??
-        AudioOutputsManager(
-            androidAudioManager: _androidAudioManager,
-            avAudioSession: _avAudioSession)
-      ..init(
-        onChangedOutputs: (devices) {
-          _changedOutputsSubject.add(devices);
-        },
-        onChangedCurrentOutput: (device) {
-          _changedCurrentOutputSubject.add(device);
-        },
-      );
+    });
     _avAudioSession?.routeChangeStream
         .where((routeChange) =>
             routeChange.reason ==
@@ -200,14 +181,6 @@ class AudioSession {
   Stream<AudioInterruptionEvent> get interruptionEventStream =>
       _interruptionEventSubject.stream;
 
-  /// A stream of [OutputAudioDevice]s.
-  Stream<List<OutputAudioDevice>> get changedOutputsStream =>
-      _changedOutputsSubject.stream;
-
-  /// A stream of [OutputAudioDevice].
-  Stream<OutputAudioDevice> get changedCurrentOutputStream =>
-      _changedCurrentOutputSubject.stream;
-
   /// A stream of events that occur when audio becomes noisy (e.g. due to
   /// unplugging the headphones).
   Stream<void> get becomingNoisyEventStream =>
@@ -221,20 +194,65 @@ class AudioSession {
   /// A stream emitting the set of connected devices whenever there is a change.
   Stream<Set<AudioDevice>> get devicesStream => _devicesSubject.stream;
 
-  Future<void> switchToSpeaker() async {
-    _audioOutputsManager?.switchToSpeaker();
+ Future<void> switchToHeadphones() async {
+    if (_androidAudioManager != null) {
+      await _androidAudioManager
+          .setMode(AndroidAudioHardwareMode.inCommunication);
+      await _androidAudioManager.stopBluetoothSco();
+      await _androidAudioManager.setBluetoothScoOn(false);
+      await _androidAudioManager.setSpeakerphoneOn(false);
+    } else if (_avAudioSession != null) {
+      return _switchToAnyIosPortIn({AVAudioSessionPort.headsetMic});
+    }
   }
 
-  Future<void> switchToBluetooth() async {
-    _audioOutputsManager?.switchToBluetooth();
+  Future<void> switchToSpeaker() async {
+    if (_androidAudioManager != null) {
+      await _androidAudioManager.setMode(AndroidAudioHardwareMode.inCommunication);
+      await _androidAudioManager.stopBluetoothSco();
+      await _androidAudioManager.setBluetoothScoOn(false);
+      await _androidAudioManager.setSpeakerphoneOn(true);
+    } else if (_avAudioSession != null) {
+      await _avAudioSession
+          .overrideOutputAudioPort(AVAudioSessionPortOverride.speaker);
+    }
   }
 
   Future<void> switchToReceiver() async {
-    _audioOutputsManager?.switchToReceiver();
+    if (_androidAudioManager != null) {
+      await _androidAudioManager
+          .setMode(AndroidAudioHardwareMode.inCommunication);
+      await _androidAudioManager.stopBluetoothSco();
+      await _androidAudioManager.setBluetoothScoOn(false);
+      await _androidAudioManager.setSpeakerphoneOn(false);
+    } else if (_avAudioSession != null) {
+      await _avAudioSession
+          .overrideOutputAudioPort(AVAudioSessionPortOverride.none);
+      return _switchToAnyIosPortIn({AVAudioSessionPort.builtInMic});
+    }
   }
 
-  Future<void> switchToHeadphones() async {
-    _audioOutputsManager?.switchToHeadphones();
+  Future<void> switchToBluetooth() async {
+    if (_androidAudioManager != null) {
+      await _androidAudioManager
+          .setMode(AndroidAudioHardwareMode.inCommunication);
+      await _androidAudioManager.startBluetoothSco();
+      await _androidAudioManager.setBluetoothScoOn(true);
+    } else if (_avAudioSession != null) {
+      return _switchToAnyIosPortIn({
+        AVAudioSessionPort.bluetoothLe,
+        AVAudioSessionPort.bluetoothHfp,
+        AVAudioSessionPort.bluetoothA2dp,
+      });
+    }
+  }
+
+  Future<void> _switchToAnyIosPortIn(Set<AVAudioSessionPort> ports) async {
+    for (final input in await _avAudioSession!.availableInputs) {
+      if (ports.contains(input.portType)) {
+        await _avAudioSession.setPreferredInput(input);
+      }
+    }
   }
 
   /// Configures the audio session. It is useful to call this method during

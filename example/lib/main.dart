@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import 'package:audio_session/audio_session.dart';
+import 'package:audio_session_example/audio_switcher.dart';
 import 'package:flutter/material.dart';
 import 'package:just_audio/just_audio.dart' as ja;
 
@@ -95,40 +96,6 @@ class _MyAppState extends State<MyApp> {
     });
   }
 
-  String getOutputDeviceName(OutputAudioDevice device) {
-    switch (device) {
-      case Bluetooth _:
-        return 'bluetooth (${device.label})';
-      case Earpiece _:
-        return 'telephony';
-      case Speaker _:
-        return 'speaker';
-    }
-  }
-
-  Future<void> changeOutputDevice(
-      OutputAudioDevice device, AudioSession audioSession) async {
-    switch (device) {
-      case Bluetooth _:
-        audioSession.switchToBluetooth();
-      case Earpiece _:
-        return audioSession.switchToReceiver();
-      case Speaker _:
-        return audioSession.switchToSpeaker();
-    }
-  }
-
-  IconData getOutputDeviceIcon(OutputAudioDevice device) {
-    switch (device) {
-      case Bluetooth _:
-        return Icons.bluetooth_audio;
-      case Earpiece _:
-        return Icons.phone;
-      case Speaker _:
-        return Icons.speaker;
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -183,44 +150,7 @@ class _MyAppState extends State<MyApp> {
                           ),
                         ),
                       ),
-                      StreamBuilder<OutputAudioDevice>(
-                          stream: session.changedCurrentOutputStream,
-                          builder: (context, snapshot) {
-                            final currentDevice = snapshot.data;
-                            final currentDeviceName = currentDevice != null
-                                ? getOutputDeviceName(currentDevice)
-                                : '';
-                            return Text(
-                                "Switch devices: $currentDeviceName",
-                                style: Theme.of(context).textTheme.titleLarge);
-                          }),
-                      StreamBuilder<List<OutputAudioDevice>>(
-                          stream: session.changedOutputsStream,
-                          builder: (context, snapshot) {
-                            final devices = snapshot.data ?? [];
-                            return Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                for (var device in devices)
-                                  Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.center,
-                                    children: [
-                                      Text(getOutputDeviceName(device)),
-                                      IconButton(                              
-                                        visualDensity: VisualDensity.compact,
-                                          padding: EdgeInsets.zero,                                           
-                                          onPressed: () => changeOutputDevice(
-                                              device, session),
-                                          icon:
-                                              Icon(
-                                                getOutputDeviceIcon(device)))
-                                    ],
-                                  ),
-                              ],
-                            );
-                          }),
+                      AudioSwitcher(session: session),
                       Text("Input devices",
                           style: Theme.of(context).textTheme.titleLarge),
                       for (var device
