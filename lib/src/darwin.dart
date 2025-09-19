@@ -30,7 +30,9 @@ class AVAudioSession {
 
   AVAudioSession._() {
     _channel.setMethodCallHandler((MethodCall call) async {
-      final args = call.arguments as List<dynamic>;
+      final args = call.arguments == null
+          ? <dynamic>[]
+          : call.arguments as List<dynamic>;
       switch (call.method) {
         case 'onInterruptionEvent':
           _interruptionNotificationSubject

@@ -1,3 +1,7 @@
+## 0.2.3
+
+* Fix AVAudioSession() method handler throwing when arguments where null (@snipd-mikel).
+
 ## 0.2.2
 
 * Run setCategory in a thread on iOS to avoid jank (@MinseokKang003).
