@@ -2,6 +2,7 @@
 
 * Fix AVAudioSession() method handler throwing when arguments is null (@snipd-mikel).
 * Fix audioAttributes being ignored on Android (@LucasAlbergoni).
+* Fix setCommunicationDevice by eliminating cache (@dballance).
 
 ## 0.2.2
 
