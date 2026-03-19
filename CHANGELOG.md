@@ -1,3 +1,7 @@
+## 0.2.3
+
+* Fix audioAttributes being ignored on Android (@LucasAlbergoni).
+
 ## 0.2.2
 
 * Run setCategory in a thread on iOS to avoid jank (@MinseokKang003).

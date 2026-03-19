@@ -598,7 +598,7 @@ class AndroidAudioFocusRequest {
 
   Map<String, dynamic> toJson() => {
         'gainType': gainType.index,
-        'audioAttribute': audioAttributes?.toJson(),
+        'audioAttributes': audioAttributes?.toJson(),
         'willPauseWhenDucked': willPauseWhenDucked,
       };
 }
