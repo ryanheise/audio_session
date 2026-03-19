@@ -1,5 +1,6 @@
 ## 0.2.3
 
+* Fix AVAudioSession() method handler throwing when arguments is null (@snipd-mikel).
 * Fix audioAttributes being ignored on Android (@LucasAlbergoni).
 
 ## 0.2.2

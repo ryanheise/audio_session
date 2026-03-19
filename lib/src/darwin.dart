@@ -30,13 +30,13 @@ class AVAudioSession {
 
   AVAudioSession._() {
     _channel.setMethodCallHandler((MethodCall call) async {
-      final args = call.arguments as List<dynamic>;
+      final args = call.arguments as List<dynamic>?;
       switch (call.method) {
         case 'onInterruptionEvent':
           _interruptionNotificationSubject
               .add(AVAudioSessionInterruptionNotification(
             type: decodeEnum(
-                AVAudioSessionInterruptionType.values, args[0] as int?,
+                AVAudioSessionInterruptionType.values, args![0] as int?,
                 defaultValue: AVAudioSessionInterruptionType.began),
             options: AVAudioSessionInterruptionOptions(args[1] as int),
             wasSuspended: args[2] as bool?,
@@ -45,14 +45,14 @@ class AVAudioSession {
         case 'onRouteChange':
           AVAudioSessionRouteChange routeChange = AVAudioSessionRouteChange(
               reason: decodeEnum(
-                  AVAudioSessionRouteChangeReason.values, args[0] as int?,
+                  AVAudioSessionRouteChangeReason.values, args![0] as int?,
                   defaultValue: AVAudioSessionRouteChangeReason.unknown));
           _routeChangeSubject.add(routeChange);
           break;
         case 'onSilenceSecondaryAudioHint':
           _silenceSecondaryAudioHintSubject.add(decodeEnum(
               AVAudioSessionSilenceSecondaryAudioHintType.values,
-              args[0] as int?,
+              args![0] as int?,
               defaultValue: AVAudioSessionSilenceSecondaryAudioHintType.begin));
           break;
         case 'onMediaServicesWereLost':
