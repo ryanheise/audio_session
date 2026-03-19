@@ -304,7 +304,6 @@ private class AudioManagerSingleton(applicationContext: Context) {
     private var applicationContext: Context?
     private var audioManager: AudioManager?
     private var audioDeviceCallback: Any? = null
-    private var devices: List<AudioDeviceInfo> = ArrayList()
 
     init {
         this.applicationContext = applicationContext
@@ -469,7 +468,7 @@ private class AudioManagerSingleton(applicationContext: Context) {
 
     @RequiresApi(31)
     fun setCommunicationDevice(deviceId: Int): Boolean {
-        for (device in devices) {
+        for (device in audioManager!!.availableCommunicationDevices) {
             if (device.id == deviceId) {
                 return audioManager!!.setCommunicationDevice(device)
             }
