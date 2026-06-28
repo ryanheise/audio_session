@@ -10,7 +10,6 @@ buildscript {
 
     dependencies {
         classpath("com.android.tools.build:gradle:8.13.1")
-        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion")
     }
 }
 
@@ -25,10 +24,7 @@ plugins {
     id("com.android.library")
 }
 
-val agpMajor = com.android.Version.ANDROID_GRADLE_PLUGIN_VERSION.substringBefore('.').toInt()
-if (agpMajor < 9) {
-   apply(plugin = "org.jetbrains.kotlin.android")
-}
+
 
 android {
     namespace = "com.ryanheise.flutter_plugin"
