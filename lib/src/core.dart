@@ -194,6 +194,67 @@ class AudioSession {
   /// A stream emitting the set of connected devices whenever there is a change.
   Stream<Set<AudioDevice>> get devicesStream => _devicesSubject.stream;
 
+ Future<void> switchToHeadphones() async {
+    if (_androidAudioManager != null) {
+      await _androidAudioManager
+          .setMode(AndroidAudioHardwareMode.inCommunication);
+      await _androidAudioManager.stopBluetoothSco();
+      await _androidAudioManager.setBluetoothScoOn(false);
+      await _androidAudioManager.setSpeakerphoneOn(false);
+    } else if (_avAudioSession != null) {
+      return _switchToAnyIosPortIn({AVAudioSessionPort.headsetMic});
+    }
+  }
+
+  Future<void> switchToSpeaker() async {
+    if (_androidAudioManager != null) {
+      await _androidAudioManager.setMode(AndroidAudioHardwareMode.inCommunication);
+      await _androidAudioManager.stopBluetoothSco();
+      await _androidAudioManager.setBluetoothScoOn(false);
+      await _androidAudioManager.setSpeakerphoneOn(true);
+    } else if (_avAudioSession != null) {
+      await _avAudioSession
+          .overrideOutputAudioPort(AVAudioSessionPortOverride.speaker);
+    }
+  }
+
+  Future<void> switchToReceiver() async {
+    if (_androidAudioManager != null) {
+      await _androidAudioManager
+          .setMode(AndroidAudioHardwareMode.inCommunication);
+      await _androidAudioManager.stopBluetoothSco();
+      await _androidAudioManager.setBluetoothScoOn(false);
+      await _androidAudioManager.setSpeakerphoneOn(false);
+    } else if (_avAudioSession != null) {
+      await _avAudioSession
+          .overrideOutputAudioPort(AVAudioSessionPortOverride.none);
+      return _switchToAnyIosPortIn({AVAudioSessionPort.builtInMic});
+    }
+  }
+
+  Future<void> switchToBluetooth() async {
+    if (_androidAudioManager != null) {
+      await _androidAudioManager
+          .setMode(AndroidAudioHardwareMode.inCommunication);
+      await _androidAudioManager.startBluetoothSco();
+      await _androidAudioManager.setBluetoothScoOn(true);
+    } else if (_avAudioSession != null) {
+      return _switchToAnyIosPortIn({
+        AVAudioSessionPort.bluetoothLe,
+        AVAudioSessionPort.bluetoothHfp,
+        AVAudioSessionPort.bluetoothA2dp,
+      });
+    }
+  }
+
+  Future<void> _switchToAnyIosPortIn(Set<AVAudioSessionPort> ports) async {
+    for (final input in await _avAudioSession!.availableInputs) {
+      if (ports.contains(input.portType)) {
+        await _avAudioSession.setPreferredInput(input);
+      }
+    }
+  }
+
   /// Configures the audio session. It is useful to call this method during
   /// your app's initialisation before you start playing or recording any
   /// audio. However, you may also call this method afterwards to change the
