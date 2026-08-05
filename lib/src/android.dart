@@ -149,7 +149,7 @@ class AndroidAudioManager {
     return (await _channel.invokeMethod<double>('getStreamVolumeDb', [
       streamType.index,
       index,
-      deviceType.index,
+      deviceType.value,
     ]))!;
   }
 
@@ -435,7 +435,8 @@ class AndroidAudioManager {
                 (raw['channelIndexMasks'] as List<dynamic>).cast<int>(),
             channelCounts: (raw['channelCounts'] as List<dynamic>).cast<int>(),
             encodings: (raw['encodings'] as List<dynamic>).cast<int>(),
-            type: decodeEnum(AndroidAudioDeviceType.values, raw['type'] as int?,
+            type: decodeMapEnum(
+                AndroidAudioDeviceType._byValue, raw['type'] as int?,
                 defaultValue: AndroidAudioDeviceType.unknown),
           );
   }
@@ -732,34 +733,53 @@ enum AndroidRingerMode {
 }
 
 enum AndroidAudioDeviceType {
-  unknown,
-  builtInEarpiece,
-  builtInSpeaker,
-  wiredHeadset,
-  wiredHeadphones,
-  lineAnalog,
-  lineDigital,
-  bluetoothSco,
-  bluetoothA2dp,
-  hdmi,
-  hdmiArc,
-  usbDevice,
-  usbAccessory,
-  dock,
-  fm,
-  builtInMic,
-  fmTuner,
-  tvTuner,
-  telephony,
-  auxLine,
-  ip,
-  bus,
-  usbHeadset,
-  hearingAid,
-  builtInSpeakerSafe,
+  unknown(0),
+  builtInEarpiece(1),
+  builtInSpeaker(2),
+  wiredHeadset(3),
+  wiredHeadphones(4),
+  lineAnalog(5),
+  lineDigital(6),
+  bluetoothSco(7),
+  bluetoothA2dp(8),
+  hdmi(9),
+  hdmiArc(10),
+  usbDevice(11),
+  usbAccessory(12),
+  dock(13),
+  fm(14),
+  builtInMic(15),
+  fmTuner(16),
+  tvTuner(17),
+  telephony(18),
+  auxLine(19),
+  ip(20),
+  bus(21),
+  usbHeadset(22),
+  hearingAid(23),
+  builtInSpeakerSafe(24),
 
   /// Android internal
-  remoteSubmix,
+  remoteSubmix(25),
+
+  bleHeadset(26),
+  bleSpeaker(27),
+  hdmiEarc(29),
+  bleBroadcast(30),
+  dockAnalog(31),
+  multichannelGroup(32),
+  bleHearingAid(33),
+  bleCentral(34),
+  bleCentralBroadcast(35),
+  echoReference(28);
+
+  const AndroidAudioDeviceType(this.value);
+
+  final int value;
+
+  static final Map<int, AndroidAudioDeviceType> _byValue = Map.unmodifiable({
+    for (final type in values) type.value: type,
+  });
 }
 
 class AndroidAudioCapturePolicy {

@@ -450,6 +450,21 @@ class AudioSession {
         return AudioDeviceType.builtInSpeakerSafe;
       case AndroidAudioDeviceType.remoteSubmix:
         return AudioDeviceType.remoteSubmix;
+      case AndroidAudioDeviceType.bleHeadset:
+      case AndroidAudioDeviceType.bleSpeaker:
+      case AndroidAudioDeviceType.bleBroadcast:
+      case AndroidAudioDeviceType.bleCentral:
+      case AndroidAudioDeviceType.bleCentralBroadcast:
+        return AudioDeviceType.bluetoothLe;
+      case AndroidAudioDeviceType.bleHearingAid:
+        return AudioDeviceType.hearingAid;
+      case AndroidAudioDeviceType.hdmiEarc:
+        return AudioDeviceType.hdmiArc;
+      case AndroidAudioDeviceType.dockAnalog:
+        return AudioDeviceType.dock;
+      case AndroidAudioDeviceType.multichannelGroup:
+      case AndroidAudioDeviceType.echoReference:
+        return AudioDeviceType.unknown;
     }
   }
 
