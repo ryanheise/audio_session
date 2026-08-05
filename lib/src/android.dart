@@ -762,40 +762,19 @@ enum AndroidAudioDeviceType {
   /// Android internal
   remoteSubmix(25),
 
-  /// Requires API level 31.
   bleHeadset(26),
-
-  /// Requires API level 31.
   bleSpeaker(27),
-
-  /// Requires API level 31.
   hdmiEarc(29),
-
-  /// Requires API level 33.
   bleBroadcast(30),
-
-  /// Requires API level 34.
   dockAnalog(31),
-
-  /// Requires API level 36.
   multichannelGroup(32),
-
-  /// Requires API level 37.
   bleHearingAid(33),
-
-  /// Requires API level 37.
   bleCentral(34),
-
-  /// Requires API level 37.
   bleCentralBroadcast(35),
-
-  /// Android internal (`@hide`). Kept out of platform-value order to ensure
-  /// decoding uses [value], not the Dart enum index.
   echoReference(28);
 
   const AndroidAudioDeviceType(this.value);
 
-  /// The corresponding `AudioDeviceInfo.TYPE_*` integer.
   final int value;
 
   static final Map<int, AndroidAudioDeviceType> _byValue = Map.unmodifiable({
