@@ -715,9 +715,16 @@ private class AudioManagerSingleton(applicationContext: Context) {
     }
 
     fun invokeMethod(method: String, vararg args: Any?) {
+        if (Looper.myLooper() == Looper.getMainLooper()) {
+            invokeMethodOnMain(method, args)
+        } else {
+            handler.post { invokeMethodOnMain(method, args) }
+        }
+    }
+
+    private fun invokeMethodOnMain(method: String, args: Array<out Any?>) {
         for (instance in instances) {
-            val list = args.toMutableList()
-            instance.channel!!.invokeMethod(method, list)
+            instance.channel!!.invokeMethod(method, args.toMutableList())
         }
     }
 
