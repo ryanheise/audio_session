@@ -1,3 +1,7 @@
+## 0.2.5
+
+* Fix crash "Methods marked with @UiThread must be executed on the main thread" on Android TV devices by dispatching method channel invocations on the main looper.
+
 ## 0.2.4
 
 * Support AGP 9.
