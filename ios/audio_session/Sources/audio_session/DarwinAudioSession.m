@@ -96,6 +96,12 @@ static NSHashTable<DarwinAudioSession *> *sessions = nil;
         [self setInputGain:args result:result];
     } else if ([@"isInputGainSettable" isEqualToString:call.method]) {
         [self getIsInputGainSettable:args result:result];
+    } else if ([@"getSampleRate" isEqualToString:call.method]) {
+        [self getSampleRate:args result:result];
+    } else if ([@"getPreferredSampleRate" isEqualToString:call.method]) {
+        [self getPreferredSampleRate:args result:result];
+    } else if ([@"setPreferredSampleRate" isEqualToString:call.method]) {
+        [self setPreferredSampleRate:args result:result];
     }
     else {
         result(FlutterMethodNotImplemented);
@@ -534,6 +540,25 @@ static NSHashTable<DarwinAudioSession *> *sessions = nil;
 - (void)getIsInputGainSettable:(NSArray *)args result:(FlutterResult)result {
     if (@available(iOS 6.0, *)) {
         result(@([[AVAudioSession sharedInstance] isInputGainSettable]));
+    } else {
+        result(nil);
+    }
+}
+
+- (void)getSampleRate:(NSArray *)args result:(FlutterResult)result {
+    result(@([[AVAudioSession sharedInstance] sampleRate]));
+}
+
+- (void)getPreferredSampleRate:(NSArray *)args result:(FlutterResult)result {
+    result(@([[AVAudioSession sharedInstance] preferredSampleRate]));
+}
+
+- (void)setPreferredSampleRate:(NSArray *)args result:(FlutterResult)result {
+    NSError *error = nil;
+    NSNumber *rate = (NSNumber *)args[0];
+    [[AVAudioSession sharedInstance] setPreferredSampleRate:rate.doubleValue error:&error];
+    if (error) {
+        [self sendError:error result:result];
     } else {
         result(nil);
     }
