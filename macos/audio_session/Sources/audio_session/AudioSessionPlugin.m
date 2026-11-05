@@ -11,7 +11,8 @@ static NSMutableArray<AudioSessionPlugin *> *plugins = nil;
     if (!plugins) {
         plugins = [[NSMutableArray alloc] init];
     }
-    [[AudioSessionPlugin alloc] initWithRegistrar:registrar];
+    AudioSessionPlugin *plugin = [[AudioSessionPlugin alloc] initWithRegistrar:registrar];
+    [plugins addObject:plugin];
 }
 
 - (instancetype)initWithRegistrar:(NSObject<FlutterPluginRegistrar> *)registrar {
@@ -21,7 +22,6 @@ static NSMutableArray<AudioSessionPlugin *> *plugins = nil;
         methodChannelWithName:@"com.ryanheise.audio_session"
               binaryMessenger:[registrar messenger]];
     [registrar addMethodCallDelegate:self channel:_channel];
-    [plugins addObject:self];
     return self;
 }
 

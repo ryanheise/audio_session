@@ -316,15 +316,14 @@ class AVAudioSession {
   //  return 1.0;
   //}
 
-  //Future<double> get sampleRate async {
-  //  return 48000.0;
-  //}
+  Future<double?> get sampleRate async =>
+      await _channel.invokeMethod<double>('getSampleRate', <dynamic>[]);
 
-  //Future<double> get preferredSampleRate async {
-  //  return 48000.0;
-  //}
+  Future<double?> get preferredSampleRate async => await _channel
+      .invokeMethod<double>('getPreferredSampleRate', <dynamic>[]);
 
-  //Future<void> setPreferredSampleRate(double rate) async {}
+  Future<void> setPreferredSampleRate(double rate) async =>
+      await _channel.invokeMethod('setPreferredSampleRate', [rate]);
 
   /// (UNTESTED)
   Future<Duration> get inputLatency async {

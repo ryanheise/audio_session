@@ -19,3 +19,6 @@ gradlew
 gradlew.bat
 .build/
 **/.cxx/
+
+# FVM Version Cache
+.fvm/
