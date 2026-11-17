@@ -40,6 +40,12 @@ class AVAudioSession {
                 defaultValue: AVAudioSessionInterruptionType.began),
             options: AVAudioSessionInterruptionOptions(args[1] as int),
             wasSuspended: args[2] as bool?,
+            reason: args[3] == null
+                ? null
+                : AVAudioSessionInterruptionReason.values.firstWhere(
+                    (reason) => reason.value == args[3],
+                    orElse: () =>
+                        AVAudioSessionInterruptionReason.defaultReason),
           ));
           break;
         case 'onRouteChange':
@@ -493,11 +499,31 @@ class AVAudioSessionInterruptionNotification {
   /// This will be `null` prior to iOS 10.3.
   final bool? wasSuspended;
 
+  /// This will be `null` for ended interruptions and prior to iOS 14.5.
+  final AVAudioSessionInterruptionReason? reason;
+
   AVAudioSessionInterruptionNotification({
     required this.type,
     required this.options,
     required this.wasSuspended,
+    this.reason,
   });
+}
+
+/// The interruption reasons for [AVAudioSessionInterruptionNotification].
+enum AVAudioSessionInterruptionReason {
+  defaultReason(0),
+
+  /// Not sent from iOS 16 onwards.
+  appWasSuspended(1),
+  builtInMicMuted(2),
+
+  /// Requires iOS 17.
+  routeDisconnected(4);
+
+  final int value;
+
+  const AVAudioSessionInterruptionReason(this.value);
 }
 
 /// The interruption types for [AVAudioSessionInterruptionNotification].
